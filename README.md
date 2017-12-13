@@ -3,6 +3,24 @@
 ## python_utils.py
 ### class switch
 python模仿switch<br>
+```Bash
+v = 'ten'
+for case in switch(v):
+    if case('one'):
+        print 1
+        break
+    if case('two'):
+        print 2
+        break
+    if case('ten'):
+        print 10
+        break
+    if case('eleven'):
+        print 11
+        break
+    if case():
+        print "something else!"
+```
 
 ## python_ida.py
 ### def getFunAddrByName

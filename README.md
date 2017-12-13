@@ -47,7 +47,7 @@ Get number used in the operand.
 @return: 0 is could not find
 ```
 
-### printAsm(addr,debug)
+### def printAsm(addr,debug)
 从某地址开始打印汇编<br>
 ```Bash
 print asm.

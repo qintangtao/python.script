@@ -19,6 +19,23 @@ Get function addr by function name.
 
 ### def getOpStr
 获取某地址处字符串汇编<br>
+```Bash
+Get operand of an instruction.
+Get number used in the operand.
+
+@param addr: address of instruction
+@param idx: number of operand
+
+@return: 0 is could not find
+```
 
 ### def printAsm
 从某地址开始打印汇编<br>
+```Bash
+print asm.
+
+@param addr: start address
+@param debug: print debug log
+
+@return: 0 is could not find
+```

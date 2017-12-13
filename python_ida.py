@@ -3,13 +3,13 @@
 import python_utils
 
 """
-    Get function addr by function name.
+Get function addr by function name.
 
-    @param base: Search start address
-    @param size: Search address size
-    @param size: Search function name
+@param base: Search start address
+@param size: Search address size
+@param size: Search function name
 
-    @return: 0 is could not find
+@return: 0 is could not find
 """
 def getFunAddrByName(base,size,fname):
     addr=base
@@ -28,13 +28,13 @@ def test_getFunAddrByName():
 	print "name_addr=0x%x" % getFunAddrByName(addr, end, "start")
 
 """
-    Get operand of an instruction.
-    Get number used in the operand.
+Get operand of an instruction.
+Get number used in the operand.
 
-    @param addr: address of instruction
-    @param idx: number of operand
+@param addr: address of instruction
+@param idx: number of operand
 
-    @return: 0 is could not find
+@return: 0 is could not find
 """
 '''
 GetOpType
@@ -89,12 +89,12 @@ def getOpStr(addr, idx):
     return asm
 
 """
-    print asm.
+print asm.
 
-    @param addr: start address
-    @param debug: print debug log
+@param addr: start address
+@param debug: print debug log
 
-    @return: 0 is could not find
+@return: 0 is could not find
 """
 def printAsm(addr,debug):
     addr = PrevHead(addr)

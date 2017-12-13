@@ -1,4 +1,4 @@
-# python.script
+# python常用脚本集
 
 ## python_utils.py
 ### class switch

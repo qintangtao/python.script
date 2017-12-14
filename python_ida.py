@@ -11,7 +11,7 @@ Get function addr by function name.
 
 @return: 0 is could not find
 """
-def getFunAddrByName(base,size,fname):
+def get_funcaddr_by_funcname(base,size,fname):
     addr=base
     endaddr=base+size
     while addr <= endaddr:
@@ -22,10 +22,10 @@ def getFunAddrByName(base,size,fname):
             return addr
     return 0
 
-def test_getFunAddrByName():
+def test_get_funcaddr_by_funcname():
 	addr=0x401000
 	end=0x490E7C
-	print "name_addr=0x%x" % getFunAddrByName(addr, end, "start")
+	print "name_addr=0x%x" % get_funcaddr_by_funcname(addr, end, "start")
 
 """
 Get operand of an instruction.
@@ -56,7 +56,7 @@ GetOpType
 //      13      bit (8051)
 //      14      bitnot (8051)
 '''
-def getOpStr(addr, idx):
+def get_op_instruction(addr, idx):
     asm=""
     type=GetOpType(addr,idx)
     for case in switch(type):
@@ -89,14 +89,14 @@ def getOpStr(addr, idx):
     return asm
 
 """
-print asm.
+print instruction.
 
 @param addr: start address
 @param debug: print debug log
 
 @return: 0 is could not find
 """
-def printAsm(addr,debug):
+def print_instruction(addr,debug):
     addr = PrevHead(addr)
     while True:
         addr = NextHead(addr)
@@ -105,26 +105,26 @@ def printAsm(addr,debug):
             opTyoe0=GetOpType(addr,0)
             opTyoe1=GetOpType(addr,1)
             print "%s %d %d" % (op, opTyoe0, opTyoe1)
-        asm=hex(addr)
-        asm+=" "
-        asm+=op
-        tmp=getOpStr(addr, 0)
+        instruction=hex(addr)
+        instruction+=" "
+        instruction+=op
+        tmp=get_op_instruction(addr, 0)
         if tmp != "":
-            asm+=" "
-            asm+=tmp
-        tmp=getOpStr(addr, 1)
+            instruction+=" "
+            instruction+=tmp
+        tmp=get_op_instruction(addr, 1)
         if tmp != "":
-            asm+=" "
-            asm+=tmp
-        print asm
+            instruction+=" "
+            instruction+=tmp
+        print instruction
         if op=="retn":
             break
 
-def test_printAsm():
+def test_print_instruction():
     addr = 0x452590
-    dumpAsm(addr, 0)
+    print_instruction(addr, 0)
 
 
 if __name__ == "__main__":
-    test_getFunAddrByName()
-    test_printAsm()
+    test_get_funcaddr_by_funcname()
+    test_print_instruction()

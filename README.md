@@ -23,7 +23,7 @@ for case in switch(v):
 ```
 
 ## python_ida.py
-### def getFunAddrByName(base,size,fname)
+### def get_funcaddr_by_funcname(base,size,fname)
 通过函数名从某地址开始搜索函数地址<br>
 ```Bash
 Get function addr by function name.
@@ -35,8 +35,8 @@ Get function addr by function name.
 @return: 0 is could not find
 ```
 
-### def getOpStr(addr, idx)
-获取某地址处字符串汇编<br>
+### def get_op_instruction(addr, idx)
+获取某地址处指令<br>
 ```Bash
 Get operand of an instruction.
 Get number used in the operand.
@@ -47,10 +47,10 @@ Get number used in the operand.
 @return: 0 is could not find
 ```
 
-### def printAsm(addr,debug)
-从某地址开始打印汇编<br>
+### def print_instruction(addr,debug)
+从某地址开始打印指令<br>
 ```Bash
-print asm.
+print instruction.
 
 @param addr: start address
 @param debug: print debug log

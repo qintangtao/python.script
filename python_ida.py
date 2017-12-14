@@ -125,6 +125,28 @@ def test_print_instruction():
     print_instruction(addr, 0)
 
 
+"""
+Dump memory to file
+
+@param filepath: path to output file
+@param ea: linear address to save from
+@param size: number of bytes to save
+
+@return: 0 - error, 1 - ok
+"""
+def dump_mem(filepath, ea, size):
+    of = idaapi.fopenWB(filepath)
+    if of:
+        retval = idaapi.base2file(of, 0, ea, ea+size)
+        idaapi.eclose(of)
+        return retval
+    else:
+        return 0
+        
+def test_dump_mem():
+    dump_mem("e://aa.a",0x452692,30)
+
 if __name__ == "__main__":
-    test_get_funcaddr_by_funcname()
-    test_print_instruction()
+    #test_get_funcaddr_by_funcname()
+    #test_print_instruction()
+    test_dump_mem()

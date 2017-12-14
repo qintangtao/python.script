@@ -57,3 +57,15 @@ print instruction.
 
 @return: 0 is could not find
 ```
+
+### def dump_mem(filepath, ea, size)
+dump内存到文件<br>
+```Bash
+Dump memory to file
+
+@param filepath: path to output file
+@param ea: linear address to save from
+@param size: number of bytes to save
+
+@return: 0 - error, 1 - ok
+```

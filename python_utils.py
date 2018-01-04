@@ -3,7 +3,9 @@
 import logging
 import shutil
 
+
 class switch(object):
+
     def __init__(self, value):
         self.value = value
         self.fall = False
@@ -12,16 +14,17 @@ class switch(object):
         """Return the match method once, then stop"""
         yield self.match
         raise StopIteration
-    
+
     def match(self, *args):
         """Indicate whether or not to enter a case suite"""
         if self.fall or not args:
             return True
-        elif self.value in args: # changed for v1.5, see below
+        elif self.value in args:  # changed for v1.5, see below
             self.fall = True
             return True
         else:
             return False
+
 
 def test_switch():
     v = 'ten'
@@ -49,9 +52,12 @@ WARN = logging.WARN
 INFO = logging.INFO
 DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
+
+
 def loggins_set_level(level):
-    root=logging.getLogger()
+    root = logging.getLogger()
     root.setLevel(level)
+
 
 def logging_config():
     loggins_set_level(DEBUG)
@@ -63,7 +69,8 @@ def logging_config():
     hdlr.setFormatter(fmt)
     root.addHandler(hdlr)
     '''
-    
+
+
 def test_loging():
     logging_config()
     logging.debug('This is debug message')
@@ -79,6 +86,8 @@ save string to file
 
 @return: 0 - error, 1 - ok
 """
+
+
 def save_file(filepath, model, str):
     of = open(filepath, model)
     if of:
@@ -88,25 +97,38 @@ def save_file(filepath, model, str):
     else:
         return 0
 
+
 def save_file_a(filepath, str):
     return save_file(filepath, "a", str)
 
+
 def save_file_wb(filepath, str):
     return save_file(filepath, "wb", str)
+
 
 def test_save_file():
     save_file_a("e://aa.arm", "asdfasdf")
 
 
 def strf(msg, *args):
-    if args: msg = msg % args
+    if args:
+        msg = msg % args
     return msg
+
 
 def rmdirs(path):
     if os.path.isdir(path):
         shutil.rmtree(path)
 
+
+def isWindowsSystem():
+    return 'Windows' in platform.system()
+
+
+def isLinuxSystem():
+    return 'Linux' in platform.system()
+
 if __name__ == "__main__":
     print strf("0x%x %s", 123, "adsfads")
-    msg="0x%x %s" % (123,"adsfads")
+    msg = "0x%x %s" % (123, "adsfads")
     print msg

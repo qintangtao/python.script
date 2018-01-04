@@ -11,21 +11,24 @@ Get function addr by function name.
 
 @return: 0 is could not find
 """
-def get_funcaddr_by_funcname(base,size,fname):
-    addr=base
-    endaddr=base+size
+
+
+def get_funcaddr_by_funcname(base, size, fname):
+    addr = base
+    endaddr = base + size
     while addr <= endaddr:
-        addr=NextHead(addr)
-        sname=Name(addr)
-        #print "%s %s" % (hex(addr),sname)
+        addr = NextHead(addr)
+        sname = Name(addr)
+        # print "%s %s" % (hex(addr),sname)
         if fname == sname:
             return addr
     return 0
 
+
 def test_get_funcaddr_by_funcname():
-	addr=0x401000
-	end=0x490E7C
-	print "name_addr=0x%x" % get_funcaddr_by_funcname(addr, end, "start")
+    addr = 0x401000
+    end = 0x490E7C
+    print "name_addr=0x%x" % get_funcaddr_by_funcname(addr, end, "start")
 
 """
 Get operand of an instruction.
@@ -74,33 +77,35 @@ o_idpspec4 = 12 # Processor specific type
 o_idpspec5 = 13 # Processor specific type
                 # There can be more processor specific types
 '''
+
+
 def get_op_instruction(addr, idx):
-    asm=""
-    type=GetOpType(addr,idx)
+    asm = ""
+    type = GetOpType(addr, idx)
     for case in switch(type):
-        if case(o_void):       
+        if case(o_void):
             break
         if case(o_reg):
-            asm+=GetOpnd(addr, idx)
+            asm += GetOpnd(addr, idx)
             break
         if case(o_mem):
-            asm+=GetOpnd(addr, idx)
+            asm += GetOpnd(addr, idx)
             break
         if case(o_phrase):
-            asm+=GetOpnd(addr, idx)
+            asm += GetOpnd(addr, idx)
             break
         if case(o_displ):
-            asm+=GetOpnd(addr, idx)
+            asm += GetOpnd(addr, idx)
             break
         if case(o_imm):
-            asm+=hex(GetOperandValue(addr,idx))
+            asm += hex(GetOperandValue(addr, idx))
             break
-        if case(o_far): #Immediate Far Address
+        if case(o_far):  # Immediate Far Address
             #asm+="short "
-            asm+=hex(GetOperandValue(addr,idx))
-        if case(o_near): #Immediate Near Address
-            asm+="short "
-            asm+=hex(GetOperandValue(addr,idx))
+            asm += hex(GetOperandValue(addr, idx))
+        if case(o_near):  # Immediate Near Address
+            asm += "short "
+            asm += hex(GetOperandValue(addr, idx))
             break
         if case():
             break
@@ -117,32 +122,34 @@ print instruction.
 
 @return: 0 is could not find
 """
-def print_instruction(addr,equals,insaddr,save,debug):
+
+
+def print_instruction(addr, equals, insaddr, save, debug):
     addr = PrevHead(addr)
     while True:
         addr = NextHead(addr)
-        op=GetMnem(addr)
+        op = GetMnem(addr)
         if debug == 1:
-            opTyoe0=GetOpType(addr,0)
-            opTyoe1=GetOpType(addr,1)
+            opTyoe0 = GetOpType(addr, 0)
+            opTyoe1 = GetOpType(addr, 1)
             print "%s %d %d" % (op, opTyoe0, opTyoe1)
-        instruction=""
+        instruction = ""
         if insaddr == 1:
-            instruction+=hex(addr)
-            instruction+=" "
-        instruction+=op
-        tmp=get_op_instruction(addr, 0)
+            instruction += hex(addr)
+            instruction += " "
+        instruction += op
+        tmp = get_op_instruction(addr, 0)
         if tmp != "":
-            instruction+=" "
-            instruction+=tmp
-        tmp=get_op_instruction(addr, 1)
+            instruction += " "
+            instruction += tmp
+        tmp = get_op_instruction(addr, 1)
         if tmp != "":
-            instruction+=" "
-            instruction+=tmp
+            instruction += " "
+            instruction += tmp
         if save != "":
-            save_file_a(save, instruction+"\n")
+            save_file_a(save, instruction + "\n")
         print instruction
-        if op==equals:
+        if op == equals:
             break
         """
             POP.W           {R4-R8,PC}
@@ -150,19 +157,22 @@ def print_instruction(addr,equals,insaddr,save,debug):
             POP.W           {R1-R11,PC}
         """
 
-def print_instruction_arm(addr,insaddr,save,debug):
-    print_instruction(addr,"B",insaddr,save,debug)
 
-def print_instruction_x86(addr,insaddr,save,debug):
-    print_instruction(addr,"retn",insaddr,save,debug)
+def print_instruction_arm(addr, insaddr, save, debug):
+    print_instruction(addr, "B", insaddr, save, debug)
+
+
+def print_instruction_x86(addr, insaddr, save, debug):
+    print_instruction(addr, "retn", insaddr, save, debug)
+
 
 def test_print_instruction():
     addr = 0x36146
-    #filepath="e://aa.arm"
-    filepath=""
-    if ( filepath != "" and os.path.isfile(filepath) ):
+    # filepath="e://aa.arm"
+    filepath = ""
+    if (filepath != "" and os.path.isfile(filepath)):
         os.remove(filepath)
-    print_instruction_arm(addr,1,filepath,0)
+    print_instruction_arm(addr, 1, filepath, 0)
 
 
 def disasm(addr):
@@ -171,12 +181,13 @@ def disasm(addr):
         addr = NextHead(addr)
         asm = GetDisasm(addr)
         print asm
-        if asm.find("BX")!=-1 and asm.find("LR")!=-1:
+        if asm.find("BX") != -1 and asm.find("LR") != -1:
             break
-        if asm.find("POP")!=-1 and asm.find("PC")!=-1:
+        if asm.find("POP") != -1 and asm.find("PC") != -1:
             break
         if asm.startswith("DCD"):
             break
+
 
 def get_disasm(addr):
     return GetDisasm(addr)
@@ -190,100 +201,115 @@ Dump memory to file
 
 @return: 0 - error, 1 - ok
 """
+
+
 def dump_mem(filepath, ea, size):
     of = idaapi.fopenWB(filepath)
     if of:
-        retval = idaapi.base2file(of, 0, ea, ea+size)
+        retval = idaapi.base2file(of, 0, ea, ea + size)
         idaapi.eclose(of)
         return retval
     else:
         return 0
-        
+
+
 def test_dump_mem():
-    start=get_func_addr("open")
-    end=get_func_end_addr(start)
-    dump_mem("e://aa.a",start,end-start)
+    start = get_func_addr("open")
+    end = get_func_end_addr(start)
+    dump_mem("e://aa.a", start, end - start)
+
 
 def get_func_addr(name):
     return LocByName(name)
 
+
 def get_func_addr_ex(base, name):
     return LocByNameEx(base, name)
+
 
 def get_func_start_addr(addr):
     addr = NextHead(addr)
     while True:
         addr = PrevHead(addr)
         asm = GetDisasm(addr)
-        if asm.find("PUSH")!=-1 and asm.find("LR")!=-1:
+        if asm.find("PUSH") != -1 and asm.find("LR") != -1:
             return addr
     return BADADDR
+
 
 def get_func_end_addr(addr):
     addr = PrevHead(addr)
     while True:
         addr = NextHead(addr)
         asm = GetDisasm(addr)
-        #print asm
-        if asm.find("BX")!=-1 and asm.find("LR")!=-1:
+        # print asm
+        if asm.find("BX") != -1 and asm.find("LR") != -1:
             return addr
-        if asm.find("POP")!=-1 and asm.find("PC")!=-1:
+        if asm.find("POP") != -1 and asm.find("PC") != -1:
             return addr
     return BADADDR
+
 
 def get_func_end_addr_by_name(name):
     return get_func_end_addr(get_func_addr(name))
 
+
 def get_func_addr_module(module, name):
-    base=get_module_base(module)
+    base = get_module_base(module)
     if base == None:
         return BADADDR
-    func_addr=get_func_addr_ex(base, name)
+    func_addr = get_func_addr_ex(base, name)
     if func_addr == BADADDR:
         return BADADDR
-    size=GetModuleSize(base)
-    if func_addr > base+size:
+    size = GetModuleSize(base)
+    if func_addr > base + size:
         return BADADDR
     return func_addr
 
+
 def get_addr_by_name(base, size, desired_name):
     current_address = base
-    end_address=base+size
+    end_address = base + size
     while current_address <= end_address:
         current_address = NextHead(current_address)
-        name=Name(current_address)
-        #print "%s: %s" %(hex(current_address), name)
+        name = Name(current_address)
+        # print "%s: %s" %(hex(current_address), name)
         if desired_name in name:
             return current_address
     return BADADDR
 
+
 def get_module_base(module):
-    base=GetFirstModule()
+    base = GetFirstModule()
     while base != None:
-        name=GetModuleName(base)
-        if name.find(module)!=-1:
-           break
-        base=GetNextModule(base)
+        name = GetModuleName(base)
+        if name.find(module) != -1:
+            break
+        base = GetNextModule(base)
     return base
+
 
 def get_module_size(base):
     return GetModuleSize(base)
 
+
 def analyze_area_module(name):
-    base=get_module_base(name)
-    if base == None: return
-    size=get_module_size(base)
-    AnalyzeArea(base, base+size)
+    base = get_module_base(name)
+    if base == None:
+        return
+    size = get_module_size(base)
+    AnalyzeArea(base, base + size)
+
 
 def get_string():
     return GetString(GetRegValue("r0"))
 
 if __name__ == "__main__":
     get_string()
-    #test_get_funcaddr_by_funcname()
-    #test_print_instruction()
-    #test_save_file()
-    #test_save_file()
+    # test_get_funcaddr_by_funcname()
+    # test_print_instruction()
+    # test_save_file()
+    # test_save_file()
 
-    #analyze_area_module("libc.so")
-    #print hex(get_func_end_addr_by_name("strtol"))
+    # analyze_area_module("libc.so")
+    # print hex(get_func_end_addr_by_name("strtol"))

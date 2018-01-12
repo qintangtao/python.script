@@ -301,15 +301,22 @@ def analyze_area_module(name):
     AnalyzeArea(base, base + size)
 
 
+def get_seg_base(segname):
+    base = FirstSeg()
+    while base != BADADDR:
+        name = SegName(base)
+        if name == segname:
+            return base
+        base = NextSeg(base)
+    return base
+
+
+def get_arm_opcode(addr):
+    return ((DbgDword(addr) & 0xFF000000) >> 24)
+
+
 def get_string():
     return GetString(GetRegValue("r0"))
 
 if __name__ == "__main__":
-    get_string()
-    # test_get_funcaddr_by_funcname()
-    # test_print_instruction()
-    # test_save_file()
-    # test_save_file()
-
-    # analyze_area_module("libc.so")
-    # print hex(get_func_end_addr_by_name("strtol"))
+    print hex(get_arm_opcode(GetRegValue("PC")))

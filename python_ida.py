@@ -311,6 +311,41 @@ def get_seg_base(segname):
     return base
 
 
+def get_seg(name):
+    base = get_seg_base(name)
+    if base == BADADDR:
+        return None
+    end = SegEnd(base)
+    return (base, end)
+
+
+def dump_seg(path, name):
+    base = get_seg_base(name)
+    if base != BADADDR:
+        end = SegEnd(base)
+    else:
+        return False
+    dump_mem(path, base, end - base)
+    return True
+
+
+def find_dword(start, end, value):
+    end -= 3
+    while start < end:
+        if value == DbgDword(start):
+            return start
+        start += 1
+    return -1
+
+
+def find_dword_seg(name, value):
+    base = get_seg_base(name)
+    if base == BADADDR:
+        return -1
+    end = SegEnd(base)
+    return find_dword(base, end, value)
+
+
 def get_arm_opcode(addr):
     return ((DbgDword(addr) & 0xFF000000) >> 24)
 

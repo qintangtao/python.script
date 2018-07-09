@@ -73,6 +73,9 @@ class MainWindow(QtGui.QWidget):
         self.page_total = 0
         self.page_limit = 10
         self.uid = scapi.generate_uid()
+        self.path = os.path.join(os.getcwd(), 'dump')
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
         self.__init_ui()
 
     def __init_ui(self):
@@ -235,17 +238,13 @@ class MainWindow(QtGui.QWidget):
 
     def onStartClicked(self):
         if self.model.rowCount() > 0:
-            path = os.path.join(os.getcwd(), 'dump')
-            if not os.path.exists(path):
-                os.makedirs(path)
-
             for dump in self.listdump:
                 row = self.model.getFreeRow()
                 if row == -1:
                     break
                 bid = self.model.getId(row)
                 self.model.setState(row, BookState.Dumping)
-                dump.start(row, path, bid, self.uid)
+                dump.start(row, self.path, bid, self.uid)
 
             self.ui.comboBox_gender.setEnabled(False)
             self.ui.comboBox_major.setEnabled(False)
@@ -292,7 +291,7 @@ class MainWindow(QtGui.QWidget):
             if row > -1:
                 bid = self.model.getId(row)
                 self.model.setState(row, BookState.Dumping)
-                self.sender().start(row, os.getcwd(), bid, self.uid)
+                self.sender().start(row, self.path, bid, self.uid)
         elif code == 1:
             self.model.setLog(index, 'Failure')
             self.model.setState(index, BookState.Failure)

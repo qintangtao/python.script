@@ -208,6 +208,9 @@ class MainWindow(QtGui.QWidget):
             qstr2str(self.ui.comboBox_gender.currentText()), qstr2str(text))
 
     def onDoubleClicked(self, index):
+        for dump in self.listdump:
+            if dump.isRunning():
+                return
         self.model.removeRow(index.row())
 
     def onPageIndexReturnPressed(self):
@@ -295,6 +298,11 @@ class MainWindow(QtGui.QWidget):
         elif code == 1:
             self.model.setLog(index, 'Failure')
             self.model.setState(index, BookState.Failure)
+            row = self.model.getFreeRow()
+            if row > -1:
+                bid = self.model.getId(row)
+                self.model.setState(row, BookState.Dumping)
+                self.sender().start(row, self.path, bid, self.uid)
         else:
             self.model.setLog(index, 'Stop')
             self.model.setState(index, BookState.Free)

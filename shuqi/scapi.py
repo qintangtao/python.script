@@ -32,12 +32,20 @@ import platform
 # 446b183c67f93e0fbd7e7efdf0371f5b
 
 
-def get_status():
+def get_status_list():
     return [{'flag': '', 'name': u'全部'}, {'flag': '0', 'name': u'连载'}, {'flag': '1', 'name': u'完结'}]
 
 
-def get_sort():
+def get_sort_list():
     return [{'flag': '', 'name': u'人气'}, {'flag': 'potential', 'name': u'上升'}, {'flag': 'collection', 'name': u'收藏'}, {'flag': 'time', 'name': u'最新'}]
+
+
+def get_status(flag):
+    status_list = get_status_list()
+    for item in status_list:
+        if flag == item['flag']:
+            return item['name']
+    return ''
 
 
 def md5_str(str):

@@ -15,9 +15,10 @@ class TableColumn(IntEnum):
     title = 0
     author = 1
     site = 2
-    progress = 3
-    log = 4
-    columnCount = 5
+    status = 3
+    progress = 4
+    log = 5
+    columnCount = 6
 
 
 class BookTableModel(QtCore.QAbstractTableModel):
@@ -37,15 +38,18 @@ class BookTableModel(QtCore.QAbstractTableModel):
             self.beginResetModel()
             self.endResetModel()
 
-    def setLog(self, row, log):
-        self.setData2(row, TableColumn.log, log)
+    def setLog(self, row, text):
+        self.setData2(row, TableColumn.log, text)
 
-    def setProgress(self, row, progress):
-        self.setData2(row, TableColumn.progress, progress)
+    def setStatus(self, row, text):
+        self.setData2(row, TableColumn.status, text)
 
-    def setState(self, row, state):
+    def setProgress(self, row, text):
+        self.setData2(row, TableColumn.progress, text)
+
+    def setState(self, row, text):
         if row >= 0 and row < self.rowCount():
-            self.__listdata[row]['state'] = state
+            self.__listdata[row]['state'] = text
 
     def getState(self, row):
         if row >= 0 and row < self.rowCount():
@@ -111,6 +115,8 @@ class BookTableModel(QtCore.QAbstractTableModel):
                     return u'作者'
                 if section == TableColumn.site:
                     return u'书源'
+                if section == TableColumn.status:
+                    return u'状态'
                 if section == TableColumn.progress:
                     return u'进度'
                 if section == TableColumn.log:
@@ -135,6 +141,8 @@ class BookTableModel(QtCore.QAbstractTableModel):
                     return self.__listdata[index.row()]['author']
                 if index.column() == TableColumn.site:
                     return self.__listdata[index.row()]['site']
+                if index.column() == TableColumn.status:
+                    return self.__listdata[index.row()]['status']
                 if index.column() == TableColumn.progress:
                     return self.__listdata[index.row()]['progress']
                 if index.column() == TableColumn.log:
@@ -156,6 +164,8 @@ class BookTableModel(QtCore.QAbstractTableModel):
             self.__listdata[index.row()]['author'] = value
         elif index.column() == TableColumn.site:
             self.__listdata[index.row()]['site'] = value
+        elif index.column() == TableColumn.status:
+            self.__listdata[index.row()]['status'] = value
         elif index.column() == TableColumn.progress:
             self.__listdata[index.row()]['progress'] = value
         elif index.column() == TableColumn.log:

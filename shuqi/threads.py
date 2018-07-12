@@ -56,6 +56,7 @@ class SourcesThread(QtCore.QThread):
 
 class DumpThread(QtCore.QThread):
 
+    signal_status = QtCore.pyqtSignal(int, str)
     signal_progress = QtCore.pyqtSignal(int, int, int)
     signal_log = QtCore.pyqtSignal(int, str)
     signal_finished = QtCore.pyqtSignal(int, int)
@@ -127,7 +128,10 @@ class DumpThread(QtCore.QThread):
             return False
         book = json['data']['book']
 
-        path = os.path.join(path, book['clazz'], "%s-%s" % (book['name'], book['author']), site_name)
+        self.__emit_signal_status(str(book['status']))
+
+        path = os.path.join(path, book['clazz'], "%s-%s" %
+                            (book['name'], book['author']), site_name)
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -191,6 +195,9 @@ class DumpThread(QtCore.QThread):
         except Exception, e:
             logging.error(str(e))
         return None
+
+    def __emit_signal_status(self, status):
+        self.signal_status.emit(self.__index, status)
 
     def __emit_signal_log(self, msg, *args):
         if args:

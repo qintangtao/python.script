@@ -129,18 +129,19 @@ class MainWindow(QtGui.QWidget):
         self.listdump = []
         for i in xrange(0, self.max_dump_count):
             dump = DumpThread()
+            dump.signal_status.connect(self.onSignalStatus)
             dump.signal_log.connect(self.onSignalLog)
             dump.signal_progress.connect(self.onSignalProgress)
             dump.signal_finished.connect(self.onSignalFinished)
             self.listdump.append(dump)
 
     def __init_status_sort(self):
-        status = scapi.get_status()
-        for item in status:
+        status_list = scapi.get_status_list()
+        for item in status_list:
             self.ui.comboBox_status.addItem(item['name'])
 
-        sort = scapi.get_sort()
-        for item in sort:
+        sort_list = scapi.get_sort_list()
+        for item in sort_list:
             self.ui.comboBox_sort.addItem(item['name'])
 
     def __init_gender(self):
@@ -174,11 +175,13 @@ class MainWindow(QtGui.QWidget):
         self.ui.tableView.setColumnWidth(
             0, self.ui.tableView.width() * 20 / 100)
         self.ui.tableView.setColumnWidth(
-            1, self.ui.tableView.width() * 15 / 100)
+            1, self.ui.tableView.width() * 12 / 100)
         self.ui.tableView.setColumnWidth(
-            2, self.ui.tableView.width() * 18 / 100)
+            2, self.ui.tableView.width() * 15 / 100)
         self.ui.tableView.setColumnWidth(
-            3, self.ui.tableView.width() * 18 / 100)
+            3, self.ui.tableView.width() * 12 / 100)
+        self.ui.tableView.setColumnWidth(
+            4, self.ui.tableView.width() * 18 / 100)
 
     def __request_books(self):
         major = qstr2str(self.ui.comboBox_major.currentText())
@@ -186,25 +189,25 @@ class MainWindow(QtGui.QWidget):
         if minor == u'全部':
             minor = ''
 
-        status_flag = ''
+        status = ''
         status_name = qstr2str(self.ui.comboBox_status.currentText())
-        status = scapi.get_status()
-        for item in status:
+        status_list = scapi.get_status_list()
+        for item in status_list:
             if item['name'] == status_name:
-                status_flag = item['flag']
+                status = item['flag']
                 break
 
-        sort_flag = ''
+        sort = ''
         sort_name = qstr2str(self.ui.comboBox_sort.currentText())
-        sort = scapi.get_sort()
-        for item in sort:
+        sort_list = scapi.get_sort_list()
+        for item in sort_list:
             if item['name'] == sort_name:
-                sort_flag = item['flag']
+                sort = item['flag']
                 break
 
         listdata = []
         json = scapi.request_Search(
-            self.uid, major, minor, status_flag, sort_flag, self.page_index * self.page_limit, self.page_limit)
+            self.uid, major, minor, status, sort, self.page_index * self.page_limit, self.page_limit)
         if json is not None and json['errno'] == 0:
             total = json['total']
             self.page_total = total / \
@@ -215,6 +218,7 @@ class MainWindow(QtGui.QWidget):
                                  'author': item['author'],
                                  'site': '',
                                  'sources': [],
+                                 'status': '',
                                  'progress': '',
                                  'log': '',
                                  'state': BookState.Free})
@@ -392,8 +396,11 @@ class MainWindow(QtGui.QWidget):
     def onStopClicked(self):
         for dump in self.listdump:
             dump.stop()
-
         self.ui.pushButton_stop.setEnabled(False)
+
+    def onSignalStatus(self, index, status):
+        name = scapi.get_status(status)
+        self.model.setStatus(index, name)
 
     def onSignalLog(self, index, log):
         self.model.setLog(index, log)

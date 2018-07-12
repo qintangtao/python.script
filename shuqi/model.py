@@ -14,8 +14,8 @@ class BookState(Enum):
 class TableColumn(IntEnum):
     title = 0
     author = 1
-    site = 2
-    status = 3
+    status = 2
+    site = 3
     progress = 4
     log = 5
     columnCount = 6

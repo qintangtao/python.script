@@ -129,7 +129,6 @@ class MainWindow(QtGui.QWidget):
         self.listdump = []
         for i in xrange(0, self.max_dump_count):
             dump = DumpThread()
-            dump.signal_status.connect(self.onSignalStatus)
             dump.signal_log.connect(self.onSignalLog)
             dump.signal_progress.connect(self.onSignalProgress)
             dump.signal_finished.connect(self.onSignalFinished)
@@ -177,9 +176,9 @@ class MainWindow(QtGui.QWidget):
         self.ui.tableView.setColumnWidth(
             1, self.ui.tableView.width() * 12 / 100)
         self.ui.tableView.setColumnWidth(
-            2, self.ui.tableView.width() * 15 / 100)
+            2, self.ui.tableView.width() * 12 / 100)
         self.ui.tableView.setColumnWidth(
-            3, self.ui.tableView.width() * 12 / 100)
+            3, self.ui.tableView.width() * 18 / 100)
         self.ui.tableView.setColumnWidth(
             4, self.ui.tableView.width() * 18 / 100)
 
@@ -218,7 +217,7 @@ class MainWindow(QtGui.QWidget):
                                  'author': item['author'],
                                  'site': '',
                                  'sources': [],
-                                 'status': '',
+                                 'status': scapi.get_status(str(item['status'])),
                                  'progress': '',
                                  'log': '',
                                  'state': BookState.Free})
@@ -397,10 +396,6 @@ class MainWindow(QtGui.QWidget):
         for dump in self.listdump:
             dump.stop()
         self.ui.pushButton_stop.setEnabled(False)
-
-    def onSignalStatus(self, index, status):
-        name = scapi.get_status(status)
-        self.model.setStatus(index, name)
 
     def onSignalLog(self, index, log):
         self.model.setLog(index, log)

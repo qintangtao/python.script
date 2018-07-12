@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from PyQt4 import QtGui, QtCore
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class BookState(Enum):
@@ -11,10 +11,19 @@ class BookState(Enum):
     Success = 3
 
 
+class TableColumn(IntEnum):
+    title = 0
+    author = 1
+    site = 2
+    progress = 3
+    log = 4
+    columnCount = 5
+
+
 class BookTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, parent=None, *args):
-        QtCore.QAbstractListModel.__init__(self, parent, *args)
+        QtCore.QAbstractTableModel.__init__(self, parent, *args)
         self.__listdata = []
 
     def updateData(self, listdata):
@@ -29,32 +38,46 @@ class BookTableModel(QtCore.QAbstractTableModel):
             self.endResetModel()
 
     def setLog(self, row, log):
-        if row >= 0 and row < len(self.__listdata):
-            self.__listdata[row]['log'] = log
-            self.beginResetModel()
-            self.endResetModel()
+        self.setData2(row, TableColumn.log, log)
 
     def setProgress(self, row, progress):
-        if row >= 0 and row < len(self.__listdata):
-            self.__listdata[row]['progress'] = progress
-            self.beginResetModel()
-            self.endResetModel()
+        self.setData2(row, TableColumn.progress, progress)
 
     def setState(self, row, state):
-        if row >= 0 and row < len(self.__listdata):
+        if row >= 0 and row < self.rowCount():
             self.__listdata[row]['state'] = state
-            self.beginResetModel()
-            self.endResetModel()
 
     def getState(self, row):
-        if row >= 0 and row < len(self.__listdata):
+        if row >= 0 and row < self.rowCount():
             return self.__listdata[row]['state']
         return None
 
+    def setSources(self, row, sources):
+        if row >= 0 and row < self.rowCount():
+            self.__listdata[row]['sources'] = sources
+            if len(sources) > 0:
+                self.setData2(row, TableColumn.site, sources[0]['site_name'])
+
+    def getSources(self, row):
+        if row >= 0 and row < self.rowCount():
+            site_name = self.data2(row, TableColumn.site)
+            sources = self.__listdata[row]['sources']
+            for item in sources:
+                if site_name == item['site_name']:
+                    return item
+        return None
+
     def getId(self, row):
-        if row >= 0 and row < len(self.__listdata):
+        if row >= 0 and row < self.rowCount():
             return self.__listdata[row]['id']
         return None
+
+    def getRowById(self, id):
+        row = 0
+        for item in self.__listdata:
+            if item['id'] == id:
+                return row
+            row += 1
 
     def getFreeRow(self):
         for row in xrange(0, self.rowCount()):
@@ -63,8 +86,18 @@ class BookTableModel(QtCore.QAbstractTableModel):
                 return row
         return -1
 
+    def setData2(self, row, column, value, role=QtCore.Qt.EditRole):
+        index = QtCore.QAbstractTableModel.index(self, row, column)
+        if self.setData(index, value, role):
+            self.beginResetModel()
+            self.endResetModel()
+
+    def data2(self, row, column, role=QtCore.Qt.DisplayRole):
+        index = self.index(row, column)
+        return self.data(index, role)
+
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return 4
+        return TableColumn.columnCount
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.__listdata)
@@ -72,13 +105,15 @@ class BookTableModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                if section == 0:
+                if section == TableColumn.title:
                     return u'名称'
-                if section == 1:
+                if section == TableColumn.author:
                     return u'作者'
-                if section == 2:
+                if section == TableColumn.site:
+                    return u'书源'
+                if section == TableColumn.progress:
                     return u'进度'
-                if section == 3:
+                if section == TableColumn.log:
                     return u'日志'
             elif orientation == QtCore.Qt.Vertical:
                 return section
@@ -94,13 +129,46 @@ class BookTableModel(QtCore.QAbstractTableModel):
                 if self.__listdata[index.row()]['state'] == BookState.Failure:
                     return QtGui.QColor(QtCore.Qt.red)
             elif role == QtCore.Qt.DisplayRole:
-                if index.column() == 0:
+                if index.column() == TableColumn.title:
                     return self.__listdata[index.row()]['title']
-                if index.column() == 1:
+                if index.column() == TableColumn.author:
                     return self.__listdata[index.row()]['author']
-                if index.column() == 2:
+                if index.column() == TableColumn.site:
+                    return self.__listdata[index.row()]['site']
+                if index.column() == TableColumn.progress:
                     return self.__listdata[index.row()]['progress']
-                if index.column() == 3:
+                if index.column() == TableColumn.log:
                     return self.__listdata[index.row()]['log']
+            elif role == QtCore.Qt.EditRole:
+                if index.column() == TableColumn.site:
+                    return self.__listdata[index.row()]['sources']
             return QtCore.QVariant()
         return QtCore.QVariant()
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        if index.isValid() is False:
+            return False
+        if role != QtCore.Qt.EditRole:
+            return False
+        if index.column() == TableColumn.title:
+            self.__listdata[index.row()]['title'] = value
+        elif index.column() == TableColumn.author:
+            self.__listdata[index.row()]['author'] = value
+        elif index.column() == TableColumn.site:
+            self.__listdata[index.row()]['site'] = value
+        elif index.column() == TableColumn.progress:
+            self.__listdata[index.row()]['progress'] = value
+        elif index.column() == TableColumn.log:
+            self.__listdata[index.row()]['log'] = value
+        else:
+            return False
+        return True
+
+    def flags(self, index):
+        if index.isValid() is False:
+            return QtCore.Qt.NoItemFlags
+
+        flag = QtCore.QAbstractItemModel.flags(self, index)
+        if index.column() == TableColumn.site:
+            flag |= QtCore.Qt.ItemIsEditable
+        return flag

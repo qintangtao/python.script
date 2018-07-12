@@ -32,6 +32,14 @@ import platform
 # 446b183c67f93e0fbd7e7efdf0371f5b
 
 
+def get_status():
+    return [{'flag': '', 'name': u'全部'}, {'flag': '0', 'name': u'连载'}, {'flag': '1', 'name': u'完结'}]
+
+
+def get_sort():
+    return [{'flag': '', 'name': u'人气'}, {'flag': 'potential', 'name': u'上升'}, {'flag': 'collection', 'name': u'收藏'}, {'flag': 'time', 'name': u'最新'}]
+
+
 def md5_str(str):
     hash = hashlib.md5()
     hash.update(str.encode(encoding='utf-8'))
@@ -83,9 +91,9 @@ def request_post(url, data):
     return None
 
 
-def request_Search(uid, major, minor, start, limit):
+def request_Search(uid, major, minor, status, sort, start, limit):
     return request_get('http://api.reader.m.so.com/app/index.php',
-                       {'m': 'Api', 'c': 'Search', 'a': 'tags', 'q': major, 'tags[]': minor, 'status': 0, 'sort': 'potential', 's': start, 'n': limit, 'from': 'test', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
+                       {'m': 'Api', 'c': 'Search', 'a': 'tags', 'q': major, 'tags[]': minor, 'status': status, 'sort': sort, 's': start, 'n': limit, 'from': 'test', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
 
 
 def request_WapBookIntro(bid, uid):

@@ -86,7 +86,7 @@ class BookTableModel(QtCore.QAbstractTableModel):
     def getFreeRow(self):
         for row in xrange(0, self.rowCount()):
             state = self.__listdata[row]['state']
-            if state == BookState.Free:
+            if state == BookState.Free or state == BookState.Failure:
                 return row
         return -1
 

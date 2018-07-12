@@ -178,9 +178,9 @@ class MainWindow(QtGui.QWidget):
         self.ui.tableView.setColumnWidth(
             2, self.ui.tableView.width() * 12 / 100)
         self.ui.tableView.setColumnWidth(
-            3, self.ui.tableView.width() * 18 / 100)
+            3, self.ui.tableView.width() * 15 / 100)
         self.ui.tableView.setColumnWidth(
-            4, self.ui.tableView.width() * 18 / 100)
+            4, self.ui.tableView.width() * 15 / 100)
 
     def __request_books(self):
         major = qstr2str(self.ui.comboBox_major.currentText())

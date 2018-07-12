@@ -173,7 +173,7 @@ class DumpThread(QtCore.QThread):
                         return False
                 self.__emit_signal_progress(total, index)
         else:
-            logging.error('%s chapters is empty' % site)
+            logging.error('%s chapters is empty' % site_name)
             return False
         if self.__exit:
             return False

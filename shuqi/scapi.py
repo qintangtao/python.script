@@ -77,7 +77,7 @@ def get_encrpt_url(url):
 
 def request_get(url, params=None):
     try:
-        r = requests.get(url, params, timeout=6)
+        r = requests.get(url, params, timeout=3)
         logging.debug(r.url)
         if r.status_code == 200:
             logging.debug(r.content)
@@ -89,7 +89,7 @@ def request_get(url, params=None):
 
 def request_post(url, data):
     try:
-        r = requests.post(url, data, timeout=6)
+        r = requests.post(url, data, timeout=3)
         logging.debug(r.url)
         if r.status_code == 200:
             logging.debug(r.content)

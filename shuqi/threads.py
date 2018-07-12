@@ -81,35 +81,12 @@ class DumpThread(QtCore.QThread):
     def run(self):
         self.__emit_signal_log('get book info')
         code = 1
-        json = scapi.request_WapBookIntro(self.__bid, self.__uid)
-        if json is not None:
-            if json['errno'] == '0':
-                path = os.path.join(self.__path, json['data']['book'][
-                                    'clazz'], "%s-%s" % (json['data']['book']['name'], json['data']['book']['author']))
-                if not os.path.exists(path):
-                    os.makedirs(path)
-
-                self.__emit_signal_log('save book info')
-
-                book = json['data']['book']
-                data = {'cover': book['cover'], 'clazz': book['clazz'], 'name': book[
-                    'name'], 'author': book['author'], 'desc': book['desc'], 'site': self.__site, 'site_name': self.__site_name}
-                self.__save_book_info(path, data)
-
-                path = os.path.join(path, self.__site_name)
-                if not os.path.exists(path):
-                    os.makedirs(path)
-
-                for i in xrange(0, 3):
-                    if self.__exit:
-                        break
-                    if self.__dump_chapter_html(path, self.__bid, self.__uid, self.__site):
-                        code = 0
-                        break
-            else:
-                logging.error('request_WapBookIntro: %s', json['errno'])
-        else:
-            logging.error('request_WapBookIntro failed')
+        for i in xrange(0, 3):
+            if self.__exit:
+                break
+            if self.__dump_chapter_html(self.__path, self.__bid, self.__uid, self.__site, self.__site_name):
+                code = 0
+                break
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
@@ -128,9 +105,11 @@ class DumpThread(QtCore.QThread):
         filepath = os.path.join(path, 'chapter.json')
         self.__save_json(filepath, data)
 
-    def __dump_chapter_html(self, path, bid, uid, site):
+    def __dump_chapter_html(self, path, bid, uid, site, site_name):
         self.__emit_signal_log('get chapter list')
         json = scapi.request_WapChapterList(bid, uid, site)
+        if self.__exit:
+            return False
         if json is None:
             logging.error('request_WapChapterList failed')
             return False
@@ -143,6 +122,21 @@ class DumpThread(QtCore.QThread):
         if 'chapters' not in json['data']:
             logging.error('chapters is none')
             return False
+        if 'book' not in json['data']:
+            logging.error('book is none')
+            return False
+        book = json['data']['book']
+
+        path = os.path.join(path, book['clazz'], "%s-%s" % (book['name'], book['author']), site_name)
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        self.__emit_signal_log('save book info')
+        data = {'cover': book['cover'], 'clazz': book['clazz'], 'name': book[
+            'name'], 'author': book['author'], 'desc': book['desc'], 'status': book['status'], 'site': site, 'site_name': site_name}
+
+        self.__save_book_info(path, data)
+
         total = len(json['data']['chapters'])
         if total > 0:
             self.__emit_signal_progress(total, 0)

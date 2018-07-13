@@ -171,7 +171,7 @@ class DumpThread(QtCore.QThread):
         book = json['data']['book']
 
         path = os.path.join(path, book['clazz'], "%s-%s" %
-                            (book['name'], book['author']), site_name)
+                            (book['name'].replace(':', '_'), book['author']), site_name)
         if not os.path.exists(path):
             try:
                 os.makedirs(path)

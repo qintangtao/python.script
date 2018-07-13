@@ -200,7 +200,7 @@ class DumpThread(QtCore.QThread):
                             break
                         content = utils.request_get(item['url'])
                         if content is not None:
-                            if utils.save_file_w(filename, item['title'] + '\n\n' + content):
+                            if utils.save_file_w(filename, content):
                                 rett = True
                                 break
                     if self.__exit:

@@ -408,6 +408,32 @@ class MainWindow(QtGui.QWidget):
             dump.stop()
         self.ui.pushButton_stop.setEnabled(False)
 
+        for dump in self.listdump:
+            if dump.isRunning():
+                return
+
+        self.ui.comboBox_gender.setEnabled(True)
+        self.ui.comboBox_major.setEnabled(True)
+        self.ui.comboBox_minor.setEnabled(True)
+        self.ui.comboBox_status.setEnabled(True)
+        self.ui.comboBox_sort.setEnabled(True)
+        self.ui.lineEdit_page_index.setEnabled(True)
+        self.ui.pushButton_refresh.setEnabled(True)
+        self.ui.pushButton_remove.setEnabled(True)
+        self.ui.pushButton_sources.setEnabled(True)
+        self.ui.pushButton_start.setEnabled(True)
+        self.ui.pushButton_stop.setEnabled(False)
+
+        if self.page_index > 0:
+            self.ui.pushButton_before_page.setEnabled(True)
+        else:
+            self.ui.pushButton_before_page.setEnabled(False)
+
+        if self.page_index + 1 < self.page_total:
+            self.ui.pushButton_after_page.setEnabled(True)
+        else:
+            self.ui.pushButton_after_page.setEnabled(False)
+
     def onSignalLog(self, index, log):
         self.model.setLog(index, log)
 

@@ -136,19 +136,31 @@ class DumpThread(QtCore.QThread):
             code = 2
         self.__emit_signal_finished(code)
 
-    def __save_json(self, filepath, data):
-        with open(filepath, 'w') as f:
-            content = json.dumps(data)
-            logging.debug(content)
-            f.write(content)
+    def __save_file(self, filepath, mode, data):
+        try:
+            with open(filepath, mode) as f:
+                f.write(data)
+                return True
+        except Exception, e:
+            logging.error(str(e))
+        return False
 
-    def __save_book_info(self, path, data):
+    def __save_file_w(self, filepath, data):
+        self.__save_file(filepath, 'w', data)
+
+    def __save_file_wb(self, filepath, data):
+        self.__save_file(filepath, 'wb', data)
+
+    def __save_json(self, filepath, dict):
+        return self.__save_file_w(filepath, json.dumps(dict))
+
+    def __save_book_info(self, path, dict):
         filepath = os.path.join(path, 'book.json')
-        self.__save_json(filepath, data)
+        return self.__save_json(filepath, dict)
 
-    def __save_chapter_info(self, path, data):
+    def __save_chapter_info(self, path, dict):
         filepath = os.path.join(path, 'chapter.json')
-        self.__save_json(filepath, data)
+        return self.__save_json(filepath, dict)
 
     def __dump_chapter_html(self, path, bid, uid, site, site_name):
         json = scapi.request_WapChapterList(bid, uid, site)
@@ -186,6 +198,10 @@ class DumpThread(QtCore.QThread):
         self.__emit_signal_log('start 2')
         self.__save_book_info(path, data)
 
+        self.__emit_signal_log('start 3')
+        self.__download_file(path, book['cover'])
+
+        self.__emit_signal_log('start 4')
         total = len(json['data']['chapters'])
         if total > 0:
             self.__emit_signal_progress(total, 0)
@@ -231,9 +247,21 @@ class DumpThread(QtCore.QThread):
             self.__save_chapter_info(path, data)
             return True
 
-    def __request_get(self, url, params=None):
+    def __download_file(self, path, url):
+        filepath = os.path.join(path, os.path.basename(url))
+        if os.path.exists(filepath):
+            return True
+        return self.__request_file(filepath, url)
+
+    def __request_file(self, filepath, url):
+        content = self.__request_get(url)
+        if content is None:
+            return False
+        return self.__save_file_wb(filepath, content)
+
+    def __request_get(self, url, params=None, timeout=12, **kwargs):
         try:
-            r = requests.get(url, params, timeout=12)
+            r = requests.get(url, params=params, timeout=timeout, **kwargs)
             logging.debug(r.url)
             if r.status_code == 200:
                 logging.debug(r.content)

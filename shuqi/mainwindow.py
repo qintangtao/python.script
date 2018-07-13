@@ -172,14 +172,32 @@ class MainWindow(QtGui.QWidget):
                           sort, self.page_index * self.page_limit, self.page_limit)
 
         self.model.updateData([])
-        self.ui.lineEdit_page_index.setEnabled(False)
-        self.ui.pushButton_before_page.setEnabled(False)
-        self.ui.pushButton_after_page.setEnabled(False)
+        self.__enabledComboBox(False)
+        self.__enabledPageButton(False)
         self.ui.pushButton_refresh.setEnabled(False)
         self.ui.pushButton_remove.setEnabled(False)
         self.ui.pushButton_sources.setEnabled(False)
         self.ui.pushButton_start.setEnabled(False)
         self.ui.pushButton_stop.setEnabled(False)
+
+    def __enabledComboBox(self, enabled):
+        self.ui.comboBox_gender.setEnabled(enabled)
+        self.ui.comboBox_major.setEnabled(enabled)
+        self.ui.comboBox_minor.setEnabled(enabled)
+        self.ui.comboBox_status.setEnabled(enabled)
+        self.ui.comboBox_sort.setEnabled(enabled)
+
+    def __enabledPageButton(self, enabled=True):
+        if enabled:
+            self.ui.pushButton_before_page.setEnabled(
+                True if self.page_index > 0 else False)
+            self.ui.lineEdit_page_index.setEnabled(enabled)
+            self.ui.pushButton_before_page.setEnabled(
+                True if self.page_index + 1 < self.page_total else False)
+        else:
+            self.ui.pushButton_before_page.setEnabled(enabled)
+            self.ui.lineEdit_page_index.setEnabled(enabled)
+            self.ui.pushButton_after_page.setEnabled(enabled)
 
     def showEvent(self, event):
         super(MainWindow, self).showEvent(event)
@@ -243,18 +261,11 @@ class MainWindow(QtGui.QWidget):
         if code == 0:
             self.ui.lineEdit_page_index.setText(str(self.page_index+1))
             self.ui.lineEdit_page_total.setText(str(self.page_total))
-            self.ui.lineEdit_page_index.setEnabled(True)
             self.ui.pushButton_remove.setEnabled(True)
             self.ui.pushButton_sources.setEnabled(True)
             self.ui.pushButton_start.setEnabled(False)
-            if self.page_index > 0:
-                self.ui.pushButton_before_page.setEnabled(True)
-            else:
-                self.ui.pushButton_before_page.setEnabled(False)
-            if self.page_index + 1 < self.page_total:
-                self.ui.pushButton_after_page.setEnabled(True)
-            else:
-                self.ui.pushButton_after_page.setEnabled(False)
+            self.__enabledPageButton()
+        self.__enabledComboBox(True)
         self.ui.pushButton_refresh.setEnabled(True)
 
     def onRemoveClicked(self):
@@ -280,14 +291,8 @@ class MainWindow(QtGui.QWidget):
             self.model.setState(self.rowSources, BookState.Dumping)
             self.sources.start(self.rowSources, self.model.getId(
                 self.rowSources), self.uid)
-            self.ui.comboBox_gender.setEnabled(False)
-            self.ui.comboBox_major.setEnabled(False)
-            self.ui.comboBox_minor.setEnabled(False)
-            self.ui.comboBox_status.setEnabled(False)
-            self.ui.comboBox_sort.setEnabled(False)
-            self.ui.lineEdit_page_index.setEnabled(False)
-            self.ui.pushButton_before_page.setEnabled(False)
-            self.ui.pushButton_after_page.setEnabled(False)
+            self.__enabledComboBox(False)
+            self.__enabledPageButton(False)
             self.ui.pushButton_refresh.setEnabled(False)
             self.ui.pushButton_remove.setEnabled(False)
             self.ui.pushButton_sources.setEnabled(False)
@@ -314,27 +319,13 @@ class MainWindow(QtGui.QWidget):
                 self.sources.start(self.rowSources, self.model.getId(
                     self.rowSources), self.uid)
             else:
-                self.ui.comboBox_gender.setEnabled(True)
-                self.ui.comboBox_major.setEnabled(True)
-                self.ui.comboBox_minor.setEnabled(True)
-                self.ui.comboBox_status.setEnabled(True)
-                self.ui.comboBox_sort.setEnabled(True)
-                self.ui.lineEdit_page_index.setEnabled(True)
+                self.__enabledComboBox(True)
+                self.__enabledPageButton()
                 self.ui.pushButton_refresh.setEnabled(True)
                 self.ui.pushButton_remove.setEnabled(True)
                 self.ui.pushButton_sources.setEnabled(True)
                 self.ui.pushButton_start.setEnabled(True)
                 self.ui.pushButton_stop.setEnabled(False)
-
-                if self.page_index > 0:
-                    self.ui.pushButton_before_page.setEnabled(True)
-                else:
-                    self.ui.pushButton_before_page.setEnabled(False)
-
-                if self.page_index + 1 < self.page_total:
-                    self.ui.pushButton_after_page.setEnabled(True)
-                else:
-                    self.ui.pushButton_after_page.setEnabled(False)
 
     def onStartClicked(self):
         if self.model.rowCount() > 0:
@@ -349,14 +340,8 @@ class MainWindow(QtGui.QWidget):
                 dump.start(row, self.path, bid, self.uid,
                            source['site'], source['site_name'])
 
-            self.ui.comboBox_gender.setEnabled(False)
-            self.ui.comboBox_major.setEnabled(False)
-            self.ui.comboBox_minor.setEnabled(False)
-            self.ui.comboBox_status.setEnabled(False)
-            self.ui.comboBox_sort.setEnabled(False)
-            self.ui.lineEdit_page_index.setEnabled(False)
-            self.ui.pushButton_before_page.setEnabled(False)
-            self.ui.pushButton_after_page.setEnabled(False)
+            self.__enabledComboBox(False)
+            self.__enabledPageButton(False)
             self.ui.pushButton_refresh.setEnabled(False)
             self.ui.pushButton_remove.setEnabled(False)
             self.ui.pushButton_sources.setEnabled(False)
@@ -372,27 +357,13 @@ class MainWindow(QtGui.QWidget):
             if dump.isRunning():
                 return
 
-        self.ui.comboBox_gender.setEnabled(True)
-        self.ui.comboBox_major.setEnabled(True)
-        self.ui.comboBox_minor.setEnabled(True)
-        self.ui.comboBox_status.setEnabled(True)
-        self.ui.comboBox_sort.setEnabled(True)
-        self.ui.lineEdit_page_index.setEnabled(True)
+        self.__enabledComboBox(True)
+        self.__enabledPageButton()
         self.ui.pushButton_refresh.setEnabled(True)
         self.ui.pushButton_remove.setEnabled(True)
         self.ui.pushButton_sources.setEnabled(True)
         self.ui.pushButton_start.setEnabled(True)
         self.ui.pushButton_stop.setEnabled(False)
-
-        if self.page_index > 0:
-            self.ui.pushButton_before_page.setEnabled(True)
-        else:
-            self.ui.pushButton_before_page.setEnabled(False)
-
-        if self.page_index + 1 < self.page_total:
-            self.ui.pushButton_after_page.setEnabled(True)
-        else:
-            self.ui.pushButton_after_page.setEnabled(False)
 
     def onSignalLog(self, index, log):
         self.model.setLog(index, log)
@@ -425,24 +396,10 @@ class MainWindow(QtGui.QWidget):
                 if dump.isRunning():
                     return
 
-            self.ui.comboBox_gender.setEnabled(True)
-            self.ui.comboBox_major.setEnabled(True)
-            self.ui.comboBox_minor.setEnabled(True)
-            self.ui.comboBox_status.setEnabled(True)
-            self.ui.comboBox_sort.setEnabled(True)
-            self.ui.lineEdit_page_index.setEnabled(True)
+            self.__enabledComboBox(True)
+            self.__enabledPageButton()
             self.ui.pushButton_refresh.setEnabled(True)
             self.ui.pushButton_remove.setEnabled(True)
             self.ui.pushButton_sources.setEnabled(True)
             self.ui.pushButton_start.setEnabled(True)
             self.ui.pushButton_stop.setEnabled(False)
-
-            if self.page_index > 0:
-                self.ui.pushButton_before_page.setEnabled(True)
-            else:
-                self.ui.pushButton_before_page.setEnabled(False)
-
-            if self.page_index + 1 < self.page_total:
-                self.ui.pushButton_after_page.setEnabled(True)
-            else:
-                self.ui.pushButton_after_page.setEnabled(False)

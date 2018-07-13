@@ -88,10 +88,6 @@ class BookTableModel(QtCore.QAbstractTableModel):
             state = self.__listdata[row]['state']
             if state == BookState.Free:
                 return row
-        for row in xrange(0, self.rowCount()):
-            state = self.__listdata[row]['state']
-            if state == BookState.Failure:
-                return row
         return -1
 
     def setData2(self, row, column, value, role=QtCore.Qt.EditRole):

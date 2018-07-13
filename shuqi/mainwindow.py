@@ -8,7 +8,7 @@ import scapi
 import data
 from PyQt4 import QtGui, QtCore
 from ui_mainwindow import Ui_MainWindow
-from threads import DumpThread, SourcesThread
+from threads import SearchThread, SourcesThread, DumpThread
 from model import BookState, BookTableModel
 from delegate import BookItemDelegate
 
@@ -100,6 +100,7 @@ class MainWindow(QtGui.QWidget):
         self.ui.pushButton_stop.clicked.connect(self.onStopClicked)
         self.ui.lineEdit_page_index.setText(str(self.page_index))
         self.ui.lineEdit_page_total.setText(str(self.page_total))
+        self.ui.lineEdit_page_index.setEnabled(False)
         self.ui.lineEdit_page_total.setEnabled(False)
         self.ui.pushButton_before_page.setEnabled(False)
         self.ui.pushButton_after_page.setEnabled(False)
@@ -180,7 +181,7 @@ class MainWindow(QtGui.QWidget):
         self.ui.tableView.setColumnWidth(
             3, self.ui.tableView.width() * 15 / 100)
         self.ui.tableView.setColumnWidth(
-            4, self.ui.tableView.width() * 15 / 100)
+            4, self.ui.tableView.width() * 12 / 100)
 
     def __request_books(self):
         major = qstr2str(self.ui.comboBox_major.currentText())
@@ -204,41 +205,21 @@ class MainWindow(QtGui.QWidget):
                 sort = item['flag']
                 break
 
-        listdata = []
-        json = scapi.request_Search(
-            self.uid, major, minor, status, sort, self.page_index * self.page_limit, self.page_limit)
-        if json is not None and json['errno'] == 0:
-            total = json['total']
-            self.page_total = total / \
-                self.page_limit if total % self.page_limit == 0 else total / self.page_limit + 1
-            for item in json['data']:
-                listdata.append({'id': item['id'],
-                                 'title': item['name'],
-                                 'author': item['author'],
-                                 'site': '',
-                                 'sources': [],
-                                 'status': scapi.get_status(str(item['status'])),
-                                 'progress': '',
-                                 'log': '',
-                                 'state': BookState.Free})
-        self.model.updateData(listdata)
+        self.search = SearchThread(self)
+        self.search.signal_search.connect(self.onSignalSearch)
+        self.search.signal_finished.connect(self.onSignalSearchFinished)
+        self.search.start(self.uid, major, minor, status,
+                          sort, self.page_index * self.page_limit, self.page_limit)
 
-        self.ui.lineEdit_page_index.setText(str(self.page_index+1))
-        self.ui.lineEdit_page_total.setText(str(self.page_total))
-
-        if self.page_index > 0:
-            self.ui.pushButton_before_page.setEnabled(True)
-        else:
-            self.ui.pushButton_before_page.setEnabled(False)
-
-        if self.page_index + 1 < self.page_total:
-            self.ui.pushButton_after_page.setEnabled(True)
-        else:
-            self.ui.pushButton_after_page.setEnabled(False)
-
-        self.ui.pushButton_remove.setEnabled(True)
-        self.ui.pushButton_sources.setEnabled(True)
+        self.model.updateData([])
+        self.ui.lineEdit_page_index.setEnabled(False)
+        self.ui.pushButton_before_page.setEnabled(False)
+        self.ui.pushButton_after_page.setEnabled(False)
+        self.ui.pushButton_refresh.setEnabled(False)
+        self.ui.pushButton_remove.setEnabled(False)
+        self.ui.pushButton_sources.setEnabled(False)
         self.ui.pushButton_start.setEnabled(False)
+        self.ui.pushButton_stop.setEnabled(False)
 
     def showEvent(self, event):
         super(MainWindow, self).showEvent(event)
@@ -286,6 +267,35 @@ class MainWindow(QtGui.QWidget):
     def onRefreshClicked(self):
         self.__set_table_column_width()
         self.__request_books()
+
+    def onSignalSearch(self, total, listdata):
+        self.page_total = total / \
+            self.page_limit if total % self.page_limit == 0 else total / self.page_limit + 1
+        for item in listdata:
+            item['site'] = ''
+            item['sources'] = []
+            item['progress'] = ''
+            item['log'] = ''
+            item['state'] = BookState.Free
+        self.model.updateData(listdata)
+
+    def onSignalSearchFinished(self, code):
+        if code == 0:
+            self.ui.lineEdit_page_index.setText(str(self.page_index+1))
+            self.ui.lineEdit_page_total.setText(str(self.page_total))
+            self.ui.lineEdit_page_index.setEnabled(True)
+            self.ui.pushButton_remove.setEnabled(True)
+            self.ui.pushButton_sources.setEnabled(True)
+            self.ui.pushButton_start.setEnabled(False)
+            if self.page_index > 0:
+                self.ui.pushButton_before_page.setEnabled(True)
+            else:
+                self.ui.pushButton_before_page.setEnabled(False)
+            if self.page_index + 1 < self.page_total:
+                self.ui.pushButton_after_page.setEnabled(True)
+            else:
+                self.ui.pushButton_after_page.setEnabled(False)
+        self.ui.pushButton_refresh.setEnabled(True)
 
     def onRemoveClicked(self):
         bids = []

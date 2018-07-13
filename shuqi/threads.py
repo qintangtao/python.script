@@ -8,6 +8,59 @@ import json
 from PyQt4 import QtCore
 
 
+class SearchThread(QtCore.QThread):
+
+    signal_search = QtCore.pyqtSignal(int, list)
+    signal_finished = QtCore.pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        super(SearchThread, self).__init__(parent)
+        self.__exit = False
+
+    def start(self, uid, major, minor, status, sort, start, limit):
+        self.__uid = uid
+        self.__major = major
+        self.__minor = minor
+        self.__status = status
+        self.__sort = sort
+        self.__start = start
+        self.__limit = limit
+        self.__exit = False
+        super(SearchThread, self).start()
+
+    def stop(self):
+        self.__exit = True
+        # self.wait()
+
+    def run(self):
+        code = 1
+        json = scapi.request_Search(self.__uid, self.__major, self.__minor,
+                                    self.__status, self.__sort, self.__start, self.__limit)
+        if json is not None:
+            if json['errno'] == 0:
+                listdata = []
+                for item in json['data']:
+                    listdata.append({'id': item['id'],
+                                     'title': item['name'],
+                                     'author': item['author'],
+                                     'status': scapi.get_status(str(item['status']))})
+                self.__emit_signal_search(json['total'], listdata)
+                code = 0
+            else:
+                logging.error('request_Search: %s', json['errno'])
+        else:
+            logging.error('request_Search failed')
+        if self.__exit:
+            code = 2
+        self.__emit_signal_finished(code)
+
+    def __emit_signal_search(self, total, search):
+        self.signal_search.emit(total, search)
+
+    def __emit_signal_finished(self, code):
+        self.signal_finished.emit(code)
+
+
 class SourcesThread(QtCore.QThread):
 
     signal_sources = QtCore.pyqtSignal(int, list)

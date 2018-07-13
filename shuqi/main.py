@@ -1,7 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+import os
 import sys
 import socket
+import utils
+import logging
 from PyQt4 import QtGui
 from mainwindow import MainWindow
 
@@ -20,6 +23,7 @@ def AppInstance():
 
 
 def main():
+    utils.logging_config(os.getcwd(), logging.INFO)
     AppInstance()
     app = QtGui.QApplication(sys.argv)
     w = MainWindow()

@@ -1,11 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import os
-import time
-import logging
 import res
 import scapi
 import data
+import utils
 from PyQt4 import QtGui, QtCore
 from ui_mainwindow import Ui_MainWindow
 from threads import SearchThread, SourcesThread, DumpThread
@@ -25,45 +24,6 @@ def qstr2str(txt):
     return unicode(txt.toUtf8(), 'utf8', 'ignore')
 
 
-def logging_config(path, level):
-    t = time.localtime(time.time())
-    path = os.path.join(path, 'log')
-    if not os.path.exists(path):
-        os.makedirs(path)
-    filename = os.path.join(path, 'dump_%d%02d%02d.log' %
-                            (t.tm_year, t.tm_mon, t.tm_mday))
-    logging.basicConfig(level=level,
-                        format='{%(funcName)s:%(lineno)d} <%(levelname)s> %(message)s',
-                        filename=filename,
-                        filemode='a')
-    logging.getLogger("requests").setLevel(logging.CRITICAL)
-
-
-def logging_level(level):
-    if level is not None:
-        level = level.upper()
-    if level == 'CRITICAL':
-        return logging.CRITICAL
-    if level == 'FATAL':
-        return logging.FATAL
-    if level == 'ERROR':
-        return logging.ERROR
-    if level == 'WARNING':
-        return logging.WARNING
-    if level == 'WARN':
-        return logging.WARN
-    if level == 'INFO':
-        return logging.INFO
-    if level == 'DEBUG':
-        return logging.DEBUG
-    return logging.NOTSET
-
-
-def logging_set_level(level):
-    root = logging.getLogger()
-    root.setLevel(level)
-
-
 class MainWindow(QtGui.QWidget):
 
     def __init__(self):
@@ -74,14 +34,13 @@ class MainWindow(QtGui.QWidget):
         self.page_index = 0
         self.page_total = 0
         self.page_limit = 10
-        self.uid = scapi.generate_uid()
+        self.uid = utils.generate_uid()
         self.path = os.path.join(os.getcwd(), 'dump')
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         self.__init_ui()
 
     def __init_ui(self):
-        logging_config(os.getcwd(), logging_level('info'))
         self.setWindowIcon(QtGui.QIcon(':/bug.ico'))
         # self.connect(self.ui.tableView, QtCore.SIGNAL(
         #    'doubleClicked(QModelIndex)'), self.onDoubleClicked)

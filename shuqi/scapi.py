@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import hashlib
-import requests
-import json
 import time
-import logging
-import platform
+from utils import md5_str, request_json_get
+
 
 # 搜索
 # tags[]=仙侠
@@ -48,12 +45,6 @@ def get_status(flag):
     return ''
 
 
-def md5_str(str):
-    hash = hashlib.md5()
-    hash.update(str.encode(encoding='utf-8'))
-    return hash.hexdigest()
-
-
 def get_sign(url, time):
     return md5_str(md5_str(url + time + 'eha') + url)
 
@@ -75,75 +66,35 @@ def get_encrpt_url(url):
     return ("%s&encode_id=%s&encode_sign=%s" % (url, encode_id, encode_sign))
 
 
-def request_get(url, params=None):
-    try:
-        r = requests.get(url, params, timeout=6)
-        logging.debug(r.url)
-        if r.status_code == 200:
-            logging.debug(r.content)
-            return json.loads(r.content)
-        else:
-            logging.error('status_code: %d', r.status_code)
-            logging.debug(url)
-    except Exception, e:
-        logging.error(str(e))
-    return None
-
-
-def request_post(url, data):
-    try:
-        r = requests.post(url, data, timeout=6)
-        logging.debug(r.url)
-        if r.status_code == 200:
-            logging.debug(r.content)
-            return json.loads(r.content)
-        else:
-            logging.error('status_code: %d', r.status_code)
-            logging.debug(url)
-    except Exception, e:
-        logging.error(str(e))
-    return None
-
-
 def request_Search(uid, major, minor, status, sort, start, limit):
-    return request_get('http://api.reader.m.so.com/app/index.php',
-                       {'m': 'Api', 'c': 'Search', 'a': 'tags', 'q': major, 'tags[]': minor, 'status': status, 'sort': sort, 's': start, 'n': limit, 'from': 'test', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
+    return request_json_get('http://api.reader.m.so.com/app/index.php',
+                            {'m': 'Api', 'c': 'Search', 'a': 'tags', 'q': major, 'tags[]': minor, 'status': status, 'sort': sort, 's': start, 'n': limit, 'from': 'test', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
 
 
 def request_WapBookIntro(bid, uid):
     url = 'http://reader.m.so.com/app/index.php?m=Api&support_read_mode=1&c=WapBookIntro&ebook=1&bid=%s&did=&mysite=&cfrom=search&loginType=1&uid=%s&ver=302&src=napp_sz' % (
         bid, uid)
     url = get_encrpt_url(url)
-    return request_get(url)
+    return request_json_get(url)
 
 
 def request_ChangeSource(bid, uid):
     url = 'http://api.reader.m.so.com/app/index.php?m=Api&c=ChangeSource&support_read_mode=1&type=8&bid=%s&mytitle=&mycidx=&mycid=&mydid=&read_mode=1&mysite=&isend=0&sort_type=0&loginType=1&uid=%s&ver=302&src=napp_sz' % (
         bid, uid)
     url = get_encrpt_url(url)
-    return request_get(url)
+    return request_json_get(url)
 
 
 def request_WapChapterList(bid, uid, site):
     url = 'http://api.reader.m.so.com/app/index.php?m=Api&support_read_mode=1&c=WapChapterList&no_chaplist=0&bid=%s&l=-1&s=0&fmt=2&mycidx=-1&mytitle=&mysite=&myurlid=&mylastcidx=&req_newest=1&type=5&site=%s&did=&read_mode=1&loginType=1&uid=%s&ver=302&src=napp_up' % (
         bid, site, uid)
     url = get_encrpt_url(url)
-    return request_get(url)
-
-
-def generate_uid():
-    uid = platform.platform()
-    uid += '-'
-    uid += platform.machine()
-    uid += '-'
-    uid += platform.node()
-    uid += '-'
-    uid += platform.processor()
-    return md5_str(uid)
+    return request_json_get(url)
 
 
 def main():
-    print generate_uid()
+    pass
+    # print generate_uid()
 
 if __name__ == "__main__":
     main()

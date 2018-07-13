@@ -54,13 +54,11 @@ def md5_str(str):
 def request_get(url, params=None, timeout=12, **kwargs):
     try:
         r = requests.get(url, params, timeout=timeout, **kwargs)
-        logging.debug(r.url)
-        if r.status_code == 200:
+        if r.ok:
             logging.debug(r.content)
             return r.content
         else:
-            logging.error('status_code: %d', r.status_code)
-            logging.debug(url)
+            r.raise_for_status()
     except Exception, e:
         logging.error(str(e))
     return None
@@ -69,13 +67,11 @@ def request_get(url, params=None, timeout=12, **kwargs):
 def request_post(url, data, timeout=12, **kwargs):
     try:
         r = requests.get(url, data, timeout=timeout, **kwargs)
-        logging.debug(r.url)
-        if r.status_code == 200:
+        if r.ok:
             logging.debug(r.content)
             return r.content
         else:
-            logging.error('status_code: %d', r.status_code)
-            logging.debug(url)
+            r.raise_for_status()
     except Exception, e:
         logging.error(str(e))
     return None

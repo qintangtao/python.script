@@ -90,6 +90,11 @@ class BookTableModel(QtCore.QAbstractTableModel):
                 return row
         return -1
 
+    def setAllState(self, oldstate, newstate):
+        for item in self.__listdata:
+            if item['state'] == oldstate:
+                item['state'] = newstate
+
     def setData2(self, row, column, value, role=QtCore.Qt.EditRole):
         index = QtCore.QAbstractTableModel.index(self, row, column)
         if self.setData(index, value, role):

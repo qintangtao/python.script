@@ -338,6 +338,7 @@ class MainWindow(QtGui.QWidget):
 
     def onStartClicked(self):
         if self.model.rowCount() > 0:
+            self.model.setAllState(BookState.Failure, BookState.Free)
             for dump in self.listdump:
                 row = self.model.getFreeRow()
                 if row == -1:

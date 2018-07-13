@@ -42,8 +42,6 @@ class MainWindow(QtGui.QWidget):
 
     def __init_ui(self):
         self.setWindowIcon(QtGui.QIcon(':/bug.ico'))
-        # self.connect(self.ui.tableView, QtCore.SIGNAL(
-        #    'doubleClicked(QModelIndex)'), self.onDoubleClicked)
         self.connect(self.ui.comboBox_gender, QtCore.SIGNAL(
             'activated(QString)'), self.onComboBoxGenderActivated)
         self.connect(self.ui.comboBox_major, QtCore.SIGNAL(
@@ -60,21 +58,15 @@ class MainWindow(QtGui.QWidget):
         self.ui.pushButton_stop.clicked.connect(self.onStopClicked)
         self.ui.lineEdit_page_index.setText(str(self.page_index))
         self.ui.lineEdit_page_total.setText(str(self.page_total))
-        self.ui.lineEdit_page_index.setEnabled(False)
         self.ui.lineEdit_page_total.setEnabled(False)
-        self.ui.pushButton_before_page.setEnabled(False)
-        self.ui.pushButton_after_page.setEnabled(False)
-        self.ui.pushButton_remove.setEnabled(False)
-        self.ui.pushButton_sources.setEnabled(False)
-        self.ui.pushButton_start.setEnabled(False)
-        self.ui.pushButton_stop.setEnabled(False)
+        self.__enabledPageButton(False)
+        self.__enabledButton(False, refresh=True)
         self.model = BookTableModel(self)
         self.ui.tableView.setModel(self.model)
         self.delegate = BookItemDelegate(self)
         self.ui.tableView.setItemDelegate(self.delegate)
         self.ui.tableView.setEditTriggers(
             QtGui.QAbstractItemView.DoubleClicked)
-        # self.ui.tableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         self.ui.tableView.setSelectionBehavior(
             QtGui.QAbstractItemView.SelectRows)
         self.ui.tableView.horizontalHeader().setClickable(False)
@@ -174,11 +166,7 @@ class MainWindow(QtGui.QWidget):
         self.model.updateData([])
         self.__enabledComboBox(False)
         self.__enabledPageButton(False)
-        self.ui.pushButton_refresh.setEnabled(False)
-        self.ui.pushButton_remove.setEnabled(False)
-        self.ui.pushButton_sources.setEnabled(False)
-        self.ui.pushButton_start.setEnabled(False)
-        self.ui.pushButton_stop.setEnabled(False)
+        self.__enabledButton(False)
 
     def __enabledComboBox(self, enabled):
         self.ui.comboBox_gender.setEnabled(enabled)
@@ -198,6 +186,18 @@ class MainWindow(QtGui.QWidget):
             self.ui.pushButton_before_page.setEnabled(enabled)
             self.ui.lineEdit_page_index.setEnabled(enabled)
             self.ui.pushButton_after_page.setEnabled(enabled)
+
+    def __enabledButton(self, enabled, **args):
+        self.ui.pushButton_refresh.setEnabled(
+            args['refresh'] if 'refresh' in args else enabled)
+        self.ui.pushButton_remove.setEnabled(
+            args['remove'] if 'remove' in args else enabled)
+        self.ui.pushButton_sources.setEnabled(
+            args['sources'] if 'sources' in args else enabled)
+        self.ui.pushButton_start.setEnabled(
+            args['start'] if 'start' in args else enabled)
+        self.ui.pushButton_stop.setEnabled(
+            args['stop'] if 'stop' in args else enabled)
 
     def showEvent(self, event):
         super(MainWindow, self).showEvent(event)
@@ -261,12 +261,11 @@ class MainWindow(QtGui.QWidget):
         if code == 0:
             self.ui.lineEdit_page_index.setText(str(self.page_index+1))
             self.ui.lineEdit_page_total.setText(str(self.page_total))
-            self.ui.pushButton_remove.setEnabled(True)
-            self.ui.pushButton_sources.setEnabled(True)
-            self.ui.pushButton_start.setEnabled(False)
             self.__enabledPageButton()
+            self.__enabledButton(True, start=False, stop=False)
+        else:
+            self.__enabledButton(False, refresh=True)
         self.__enabledComboBox(True)
-        self.ui.pushButton_refresh.setEnabled(True)
 
     def onRemoveClicked(self):
         bids = []
@@ -293,9 +292,7 @@ class MainWindow(QtGui.QWidget):
                 self.rowSources), self.uid)
             self.__enabledComboBox(False)
             self.__enabledPageButton(False)
-            self.ui.pushButton_refresh.setEnabled(False)
-            self.ui.pushButton_remove.setEnabled(False)
-            self.ui.pushButton_sources.setEnabled(False)
+            self.__enabledButton(False)
 
     def onSignalSources(self, index, sources):
         self.model.setSources(index, sources)
@@ -321,11 +318,7 @@ class MainWindow(QtGui.QWidget):
             else:
                 self.__enabledComboBox(True)
                 self.__enabledPageButton()
-                self.ui.pushButton_refresh.setEnabled(True)
-                self.ui.pushButton_remove.setEnabled(True)
-                self.ui.pushButton_sources.setEnabled(True)
-                self.ui.pushButton_start.setEnabled(True)
-                self.ui.pushButton_stop.setEnabled(False)
+                self.__enabledButton(True, stop=False)
 
     def onStartClicked(self):
         if self.model.rowCount() > 0:
@@ -342,28 +335,21 @@ class MainWindow(QtGui.QWidget):
 
             self.__enabledComboBox(False)
             self.__enabledPageButton(False)
-            self.ui.pushButton_refresh.setEnabled(False)
-            self.ui.pushButton_remove.setEnabled(False)
-            self.ui.pushButton_sources.setEnabled(False)
-            self.ui.pushButton_start.setEnabled(False)
-            self.ui.pushButton_stop.setEnabled(True)
+            self.__enabledButton(False, stop=True)
 
     def onStopClicked(self):
-        for dump in self.listdump:
-            dump.stop()
         self.ui.pushButton_stop.setEnabled(False)
 
+        running = False
         for dump in self.listdump:
             if dump.isRunning():
-                return
+                running = True
+                dump.stop()
 
-        self.__enabledComboBox(True)
-        self.__enabledPageButton()
-        self.ui.pushButton_refresh.setEnabled(True)
-        self.ui.pushButton_remove.setEnabled(True)
-        self.ui.pushButton_sources.setEnabled(True)
-        self.ui.pushButton_start.setEnabled(True)
-        self.ui.pushButton_stop.setEnabled(False)
+        if running is False:
+            self.__enabledComboBox(True)
+            self.__enabledPageButton()
+            self.__enabledButton(True, stop=False)
 
     def onSignalLog(self, index, log):
         self.model.setLog(index, log)
@@ -398,8 +384,4 @@ class MainWindow(QtGui.QWidget):
 
             self.__enabledComboBox(True)
             self.__enabledPageButton()
-            self.ui.pushButton_refresh.setEnabled(True)
-            self.ui.pushButton_remove.setEnabled(True)
-            self.ui.pushButton_sources.setEnabled(True)
-            self.ui.pushButton_start.setEnabled(True)
-            self.ui.pushButton_stop.setEnabled(False)
+            self.__enabledButton(True, stop=False)

@@ -51,9 +51,9 @@ def md5_str(str):
     return hash.hexdigest()
 
 
-def request_get(url, params=None, timeout=12, **kwargs):
+def request_get(url, params=None, **kwargs):
     try:
-        r = requests.get(url, params, timeout=timeout, **kwargs)
+        r = requests.get(url, params, **kwargs)
         if r.ok:
             logging.debug(r.content)
             return r.content
@@ -64,9 +64,9 @@ def request_get(url, params=None, timeout=12, **kwargs):
     return None
 
 
-def request_post(url, data, timeout=12, **kwargs):
+def request_post(url, data, **kwargs):
     try:
-        r = requests.get(url, data, timeout=timeout, **kwargs)
+        r = requests.get(url, data, **kwargs)
         if r.ok:
             logging.debug(r.content)
             return r.content
@@ -77,15 +77,15 @@ def request_post(url, data, timeout=12, **kwargs):
     return None
 
 
-def request_json_get(url, params=None, timeout=12, **kwargs):
-    content = request_get(url, params, timeout, **kwargs)
+def request_json_get(url, params=None, timeout=3, **kwargs):
+    content = request_get(url, params, timeout=timeout, **kwargs)
     if content is None:
         return None
     return json.loads(content)
 
 
-def request_json_post(url, data, timeout=12, **kwargs):
-    content = request_post(url, data, timeout, **kwargs)
+def request_json_post(url, data, timeout=3, **kwargs):
+    content = request_post(url, data, timeout=timeout, **kwargs)
     if content is None:
         return None
     return json.loads(content)

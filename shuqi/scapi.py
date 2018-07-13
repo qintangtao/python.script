@@ -77,11 +77,14 @@ def get_encrpt_url(url):
 
 def request_get(url, params=None):
     try:
-        r = requests.get(url, params, timeout=3)
+        r = requests.get(url, params, timeout=6)
         logging.debug(r.url)
         if r.status_code == 200:
             logging.debug(r.content)
             return json.loads(r.content)
+        else:
+            logging.error('status_code: %d', r.status_code)
+            logging.debug(url)
     except Exception, e:
         logging.error(str(e))
     return None
@@ -89,11 +92,14 @@ def request_get(url, params=None):
 
 def request_post(url, data):
     try:
-        r = requests.post(url, data, timeout=3)
+        r = requests.post(url, data, timeout=6)
         logging.debug(r.url)
         if r.status_code == 200:
             logging.debug(r.content)
             return json.loads(r.content)
+        else:
+            logging.error('status_code: %d', r.status_code)
+            logging.debug(url)
     except Exception, e:
         logging.error(str(e))
     return None

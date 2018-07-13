@@ -36,6 +36,7 @@ def logging_config(path, level):
                         format='{%(funcName)s:%(lineno)d} <%(levelname)s> %(message)s',
                         filename=filename,
                         filemode='a')
+    logging.getLogger("requests").setLevel(logging.CRITICAL)
 
 
 def logging_level(level):

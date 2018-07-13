@@ -47,9 +47,7 @@ class SearchThread(QtCore.QThread):
                 self.__emit_signal_search(json['total'], listdata)
                 code = 0
             else:
-                logging.error('request_Search: %s', json['errno'])
-        else:
-            logging.error('request_Search failed')
+                logging.error('errno: %s', json['errno'])
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
@@ -93,9 +91,7 @@ class SourcesThread(QtCore.QThread):
                 self.__emit_signal_sources(sources)
                 code = 0
             else:
-                logging.error('request_ChangeSource: %s', json['errno'])
-        else:
-            logging.error('request_ChangeSource failed')
+                logging.error('errno: %s', json['errno'])
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
@@ -132,14 +128,10 @@ class DumpThread(QtCore.QThread):
         # self.wait()
 
     def run(self):
-        self.__emit_signal_log('get book info')
+        self.__emit_signal_log('start')
         code = 1
-        for i in xrange(0, 3):
-            if self.__exit:
-                break
-            if self.__dump_chapter_html(self.__path, self.__bid, self.__uid, self.__site, self.__site_name):
-                code = 0
-                break
+        if self.__dump_chapter_html(self.__path, self.__bid, self.__uid, self.__site, self.__site_name):
+            code = 0
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
@@ -159,12 +151,10 @@ class DumpThread(QtCore.QThread):
         self.__save_json(filepath, data)
 
     def __dump_chapter_html(self, path, bid, uid, site, site_name):
-        self.__emit_signal_log('get chapter list')
         json = scapi.request_WapChapterList(bid, uid, site)
         if self.__exit:
             return False
         if json is None:
-            logging.error('request_WapChapterList failed')
             return False
         if json['errno'] != '0':
             logging.error('errno: %d', json['errno'])
@@ -183,12 +173,17 @@ class DumpThread(QtCore.QThread):
         path = os.path.join(path, book['clazz'], "%s-%s" %
                             (book['name'], book['author']), site_name)
         if not os.path.exists(path):
-            os.makedirs(path)
+            try:
+                os.makedirs(path)
+            except Exception, e:
+                logging.error(str(e))
+                return False
 
         self.__emit_signal_log('save book info')
         data = {'cover': book['cover'], 'clazz': book['clazz'], 'name': book[
             'name'], 'author': book['author'], 'desc': book['desc'], 'status': book['status'], 'site': site, 'site_name': site_name}
 
+        self.__emit_signal_log('start 2')
         self.__save_book_info(path, data)
 
         total = len(json['data']['chapters'])
@@ -217,16 +212,17 @@ class DumpThread(QtCore.QThread):
                                 break
                             except Exception, e:
                                 logging.error(str(e))
-                                logging.error(item['url'])
+                                logging.debug(item['url'])
                         else:
-                            logging.error(item['url'])
+                            logging.debug(item['url'])
                     if self.__exit:
                         break
                     if rett is False:
                         return False
                 self.__emit_signal_progress(total, index)
         else:
-            logging.error('%s chapters is empty' % site_name)
+            logging.error('chapters is empty')
+            logging.error('%s(%s)' % (site_name, site))
             return False
         if self.__exit:
             return False
@@ -237,11 +233,14 @@ class DumpThread(QtCore.QThread):
 
     def __request_get(self, url, params=None):
         try:
-            r = requests.get(url, params)
+            r = requests.get(url, params, timeout=12)
             logging.debug(r.url)
             if r.status_code == 200:
                 logging.debug(r.content)
                 return r.content
+            else:
+                logging.error('status_code: %d', r.status_code)
+                logging.debug(url)
         except Exception, e:
             logging.error(str(e))
         return None

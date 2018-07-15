@@ -180,7 +180,7 @@ class MainWindow(QtGui.QWidget):
             self.ui.pushButton_before_page.setEnabled(
                 True if self.page_index > 0 else False)
             self.ui.lineEdit_page_index.setEnabled(enabled)
-            self.ui.pushButton_before_page.setEnabled(
+            self.ui.pushButton_after_page.setEnabled(
                 True if self.page_index + 1 < self.page_total else False)
         else:
             self.ui.pushButton_before_page.setEnabled(enabled)

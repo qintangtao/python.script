@@ -4,6 +4,7 @@ import os
 import logging
 import scapi
 import utils
+import time
 from PyQt4 import QtCore
 
 
@@ -129,8 +130,17 @@ class DumpThread(QtCore.QThread):
     def run(self):
         self.__emit_signal_log('start')
         code = 1
-        if self.__dump_chapter_html(self.__path, self.__bid, self.__uid, self.__site, self.__site_name):
-            code = 0
+        for x in xrange(1, 6):
+            if self.__exit:
+                break
+            if self.__dump_chapter_html(self.__path, self.__bid, self.__uid, self.__site, self.__site_name):
+                code = 0
+                break
+            else:
+                for x in xrange(1, 3):
+                    if self.__exit:
+                        break
+                    time.sleep(1)
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
@@ -195,14 +205,19 @@ class DumpThread(QtCore.QThread):
                 filename = os.path.join(path, "%s.html" % index)
                 if not os.path.exists(filename):
                     rett = False
-                    for i in xrange(1, 3):
+                    for i in xrange(1, 6):
                         if self.__exit:
                             break
-                        content = utils.request_get(item['url'])
+                        content = utils.request_get(item['url'], None, timeout=12)
                         if content is not None:
                             if utils.save_file_w(filename, content):
                                 rett = True
                                 break
+                        else:
+                            for i in xrange(1, 10):
+                                if self.__exit:
+                                    break
+                                time.sleep(1)
                     if self.__exit:
                         break
                     if rett is False:

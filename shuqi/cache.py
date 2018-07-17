@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+import os
 import json
 import utils
 from prpcrypt import prpcrypt
 
 
-def SourcesCache():
+class SourcesCache():
 
     def __init__(self, path):
         self.__path = path
@@ -26,3 +27,7 @@ def SourcesCache():
         if data is None:
             return None
         return self.__decrypt(data)
+
+if __name__ == "__main__":
+    path = os.path.join(os.getcwd(), 'cache')
+    c = SourcesCache(path)

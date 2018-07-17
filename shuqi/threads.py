@@ -6,6 +6,7 @@ import scapi
 import utils
 import time
 from PyQt4 import QtCore
+from cache import SourcesCache
 
 
 class SearchThread(QtCore.QThread):
@@ -68,8 +69,9 @@ class SourcesThread(QtCore.QThread):
         super(SourcesThread, self).__init__(parent)
         self.__exit = False
 
-    def start(self, index, bid, uid):
+    def start(self, index, path, bid, uid):
         self.__index = index
+        self.__path = path
         self.__bid = bid
         self.__uid = uid
         self.__exit = False
@@ -81,17 +83,29 @@ class SourcesThread(QtCore.QThread):
 
     def run(self):
         code = 1
-        json = scapi.request_ChangeSource(self.__bid, self.__uid)
-        if json is not None:
-            if json['errno'] == 0:
-                sources = []
-                for item in json['sources']:
-                    sources.append(
-                        {'site_name': item['site_name'], 'site': item['site']})
+        path_cache = os.path.join(self.__path, 'sources')
+        if not os.path.exists(path_cache):
+            os.makedirs(path_cache)
+        path_cache = os.path.join(path_cache, self.__bid)
+        cache = SourcesCache(path_cache)
+        if os.path.exists(path_cache):
+            sources = cache.read()
+            if sources is not None:
                 self.__emit_signal_sources(sources)
                 code = 0
-            else:
-                logging.error('errno: %s', json['errno'])
+        if code != 0:
+            json = scapi.request_ChangeSource(self.__bid, self.__uid)
+            if json is not None:
+                if json['errno'] == 0:
+                    sources = []
+                    for item in json['sources']:
+                        sources.append(
+                            {'site_name': item['site_name'], 'site': item['site']})
+                    cache.write(sources)
+                    self.__emit_signal_sources(sources)
+                    code = 0
+                else:
+                    logging.error('errno: %s', json['errno'])
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
@@ -208,7 +222,8 @@ class DumpThread(QtCore.QThread):
                     for i in xrange(1, 6):
                         if self.__exit:
                             break
-                        content = utils.request_get(item['url'], None, timeout=12)
+                        content = utils.request_get(
+                            item['url'], None, timeout=12)
                         if content is not None:
                             if utils.save_file_w(filename, content):
                                 rett = True

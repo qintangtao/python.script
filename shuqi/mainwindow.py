@@ -35,9 +35,13 @@ class MainWindow(QtGui.QWidget):
         self.page_total = 0
         self.page_limit = 10
         self.uid = utils.generate_uid()
-        self.path = os.path.join(os.getcwd(), 'dump')
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
+        self.path = os.getcwd()
+        self.path_dump = os.path.join(self.path, 'dump')
+        if not os.path.exists(self.path_dump):
+            os.makedirs(self.path_dump)
+        self.path_cache = os.path.join(self.path, 'cache')
+        if not os.path.exists(self.path_cache):
+            os.makedirs(self.path_cache)
         self.__init_ui()
 
     def __init_ui(self):
@@ -288,7 +292,7 @@ class MainWindow(QtGui.QWidget):
             self.sources.signal_sources.connect(self.onSignalSources)
             self.sources.signal_finished.connect(self.onSignalSourcesFinished)
             self.model.setState(self.rowSources, BookState.Dumping)
-            self.sources.start(self.rowSources, self.model.getId(
+            self.sources.start(self.rowSources, self.path_cache, self.model.getId(
                 self.rowSources), self.uid)
             self.__enabledComboBox(False)
             self.__enabledPageButton(False)
@@ -313,7 +317,7 @@ class MainWindow(QtGui.QWidget):
             if self.model.rowCount() > self.rowSources:
                 self.model.setLog(self.rowSources, u'请求书源...')
                 self.model.setState(self.rowSources, BookState.Dumping)
-                self.sources.start(self.rowSources, self.model.getId(
+                self.sources.start(self.rowSources, self.path_cache, self.model.getId(
                     self.rowSources), self.uid)
             else:
                 self.__enabledComboBox(True)
@@ -330,7 +334,7 @@ class MainWindow(QtGui.QWidget):
                 bid = self.model.getId(row)
                 source = self.model.getSources(row)
                 self.model.setState(row, BookState.Dumping)
-                dump.start(row, self.path, bid, self.uid,
+                dump.start(row, self.path_dump, bid, self.uid,
                            source['site'], source['site_name'])
 
             self.__enabledComboBox(False)
@@ -374,7 +378,7 @@ class MainWindow(QtGui.QWidget):
                 bid = self.model.getId(row)
                 self.model.setState(row, BookState.Dumping)
                 source = self.model.getSources(row)
-                self.sender().start(row, self.path, bid, self.uid,
+                self.sender().start(row, self.path_dump, bid, self.uid,
                                     source['site'], source['site_name'])
 
         else:

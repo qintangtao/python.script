@@ -113,6 +113,23 @@ def save_json(filename, dict):
     return save_file_w(filename, json.dumps(dict))
 
 
+def read_file(filename, mode):
+    try:
+        with open(filename, mode) as f:
+            return f.read()
+    except Exception, e:
+        logging.error(str(e))
+    return None
+
+
+def read_file_r(filename):
+    return read_file(filename, 'r')
+
+
+def read_file_rb(filename):
+    return read_file(filename, 'rb')
+
+
 def request_file(filename, url):
     content = request_get(url)
     if content is None:

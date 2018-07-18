@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import time
-from utils import md5_str, request_json_get
-
+from qin import utils
 
 # 搜索
 # tags[]=仙侠
@@ -46,7 +45,7 @@ def get_status(flag):
 
 
 def get_sign(url, time):
-    return md5_str(md5_str(url + time + 'eha') + url)
+    return utils.md5_str(utils.md5_str(url + time + 'eha') + url)
 
 
 def get_encrpt_url(url):
@@ -67,29 +66,29 @@ def get_encrpt_url(url):
 
 
 def request_Search(uid, major, minor, status, sort, start, limit):
-    return request_json_get('http://api.reader.m.so.com/app/index.php',
-                            {'m': 'Api', 'c': 'Search', 'a': 'tags', 'q': major, 'tags[]': minor, 'status': status, 'sort': sort, 's': start, 'n': limit, 'from': 'test', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
+    return utils.request_json_get('http://api.reader.m.so.com/app/index.php',
+                                  {'m': 'Api', 'c': 'Search', 'a': 'tags', 'q': major, 'tags[]': minor, 'status': status, 'sort': sort, 's': start, 'n': limit, 'from': 'test', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
 
 
 def request_WapBookIntro(bid, uid):
     url = 'http://reader.m.so.com/app/index.php?m=Api&support_read_mode=1&c=WapBookIntro&ebook=1&bid=%s&did=&mysite=&cfrom=search&loginType=1&uid=%s&ver=302&src=napp_sz' % (
         bid, uid)
     url = get_encrpt_url(url)
-    return request_json_get(url)
+    return utils.request_json_get(url)
 
 
 def request_ChangeSource(bid, uid):
     url = 'http://api.reader.m.so.com/app/index.php?m=Api&c=ChangeSource&support_read_mode=1&type=8&bid=%s&mytitle=&mycidx=&mycid=&mydid=&read_mode=1&mysite=&isend=0&sort_type=0&loginType=1&uid=%s&ver=302&src=napp_sz' % (
         bid, uid)
     url = get_encrpt_url(url)
-    return request_json_get(url)
+    return utils.request_json_get(url)
 
 
 def request_WapChapterList(bid, uid, site):
     url = 'http://api.reader.m.so.com/app/index.php?m=Api&support_read_mode=1&c=WapChapterList&no_chaplist=0&bid=%s&l=-1&s=0&fmt=2&mycidx=-1&mytitle=&mysite=&myurlid=&mylastcidx=&req_newest=1&type=5&site=%s&did=&read_mode=1&loginType=1&uid=%s&ver=302&src=napp_up' % (
         bid, site, uid)
     url = get_encrpt_url(url)
-    return request_json_get(url)
+    return utils.request_json_get(url)
 
 
 def main():

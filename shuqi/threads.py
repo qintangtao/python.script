@@ -3,10 +3,10 @@
 import os
 import logging
 import scapi
-import utils
 import time
 from PyQt4 import QtCore
 from cache import SourcesCache
+from qin import utils
 
 
 class SearchThread(QtCore.QThread):

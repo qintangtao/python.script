@@ -4,12 +4,12 @@ import os
 import res
 import scapi
 import data
-import utils
 from PyQt4 import QtGui, QtCore
 from ui_mainwindow import Ui_MainWindow
 from threads import SearchThread, SourcesThread, DumpThread
 from model import BookState, BookTableModel
 from delegate import BookItemDelegate
+from qin import utils
 
 
 def gbk2utf8(txt):

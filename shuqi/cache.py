@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 import os
 import json
-import utils
-from prpcrypt import prpcrypt
+from qin.prpcrypt import prpcrypt
+from qin import utils
 
 
 class SourcesCache():

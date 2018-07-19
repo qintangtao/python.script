@@ -210,6 +210,7 @@ class DumpThread(QtCore.QThread):
                 logging.error(str(e))
                 return False
 
+        book_status = book['status']
         self.__emit_signal_log('save book info')
         data = {'cover': book['cover'], 'clazz': book['clazz'], 'name': book[
             'name'], 'author': book['author'], 'desc': book['desc'], 'status': book['status'], 'site': site, 'site_name': site_name}
@@ -268,6 +269,10 @@ class DumpThread(QtCore.QThread):
         else:
             data = {'chapters': data_chapter}
             self.__save_chapter_info(path, data)
+            if book_status != 1:
+                if os.path.exists(path_cache):
+                    print 'remove', path_cache
+                    os.remove(path_cache)
             return True
 
     def __emit_signal_log(self, msg, *args):

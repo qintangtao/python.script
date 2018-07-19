@@ -7,6 +7,7 @@ import platform
 import hashlib
 import requests
 import json
+import random
 
 '''
 logging.CRITICAL
@@ -142,3 +143,53 @@ def download_file(path, url):
     if os.path.exists(filename):
         return True
     return request_file(filename, url)
+
+
+def gmt_timestamp(gmt):
+    return time.mktime(time.strptime(gmt, '%a, %d %b %Y %H:%M:%S GMT')) + (8 * 60 * 60)
+
+
+def timestamp_datetime(tm):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tm))
+
+
+def datetime_timestamp(dt):
+    return time.mktime(time.strptime(dt, '%Y-%m-%d %H:%M:%S'))
+
+
+def millis_timestamp(t):
+    msTime = lambda: int(round(t * 1000))
+    return msTime()
+
+
+def is_overdue(timestamp):
+    try:
+        r = requests.get('http://www.beijing-time.org/')
+        if r.ok:
+            tm = gmt_timestamp(r.headers['Date'])
+            mstm = millis_timestamp(tm)
+            # print tm, mstm, timestamp
+            if mstm > timestamp:
+                return True
+        else:
+            print 'r is not ok'
+    except Exception, e:
+        print str(e)
+    return False
+
+
+def random_check():
+    random.seed()
+    r = random.randint(1, 100)
+    if r % 2 == 0:
+        return True
+    return False
+
+if __name__ == "__main__":
+    print random_check()
+    '''
+    if is_overdue(123):
+        print 'True'
+    else:
+        print 'False'
+    '''

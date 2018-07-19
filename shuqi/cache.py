@@ -29,9 +29,10 @@ class BaseCache(object):
 
     def read(self):
         try:
-            data = utils.read_file_r(self._path)
-            if data is not None:
-                return self._decrypt(data)
+            if os.path.exists(self._path):
+                data = utils.read_file_r(self._path)
+                if data is not None:
+                    return self._decrypt(data)
         except Exception, e:
             logging.error(str(e))
         return None

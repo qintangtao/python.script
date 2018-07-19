@@ -5,7 +5,7 @@ import logging
 import scapi
 import time
 from PyQt4 import QtCore
-from cache import SourcesCache
+from cache import SourcesCache, ChaptersCache
 from qin import utils
 
 
@@ -83,29 +83,30 @@ class SourcesThread(QtCore.QThread):
 
     def run(self):
         code = 1
+        json = None
+        newjson = False
         path_cache = os.path.join(self.__path, 'sources')
         if not os.path.exists(path_cache):
             os.makedirs(path_cache)
         path_cache = os.path.join(path_cache, self.__bid)
         cache = SourcesCache(path_cache)
         if os.path.exists(path_cache):
-            sources = cache.read()
-            if sources is not None:
+            json = cache.read()
+        if json is None:
+            json = scapi.request_ChangeSource(self.__bid, self.__uid)
+            newjson = True
+        if json is not None:
+            if json['errno'] == 0:
+                if newjson:
+                    cache.write(json)
+                sources = []
+                for item in json['sources']:
+                    sources.append(
+                        {'site_name': item['site_name'], 'site': item['site']})
                 self.__emit_signal_sources(sources)
                 code = 0
-        if code != 0:
-            json = scapi.request_ChangeSource(self.__bid, self.__uid)
-            if json is not None:
-                if json['errno'] == 0:
-                    sources = []
-                    for item in json['sources']:
-                        sources.append(
-                            {'site_name': item['site_name'], 'site': item['site']})
-                    cache.write(sources)
-                    self.__emit_signal_sources(sources)
-                    code = 0
-                else:
-                    logging.error('errno: %s', json['errno'])
+            else:
+                logging.error('errno: %s', json['errno'])
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
@@ -127,9 +128,10 @@ class DumpThread(QtCore.QThread):
         super(DumpThread, self).__init__(parent)
         self.__exit = False
 
-    def start(self, index, path, bid, uid, site, site_name):
+    def start(self, index, path, path_cache, bid, uid, site, site_name):
         self.__index = index
         self.__path = path
+        self.__path_cache = path_cache
         self.__bid = bid
         self.__uid = uid
         self.__site = site
@@ -169,7 +171,18 @@ class DumpThread(QtCore.QThread):
         return utils.save_json(filename, dict)
 
     def __dump_chapter_html(self, path, bid, uid, site, site_name):
-        json = scapi.request_WapChapterList(bid, uid, site)
+        json = None
+        newjson = False
+        path_cache = os.path.join(self.__path_cache, 'chapters')
+        if not os.path.exists(path_cache):
+            os.makedirs(path_cache)
+        path_cache = os.path.join(path_cache, self.__bid)
+        cache = ChaptersCache(path_cache)
+        if os.path.exists(path_cache):
+            json = cache.read()
+        if json is None:
+            json = scapi.request_WapChapterList(bid, uid, site)
+            newjson = True
         if self.__exit:
             return False
         if json is None:
@@ -210,6 +223,8 @@ class DumpThread(QtCore.QThread):
         self.__emit_signal_log('start 4')
         total = len(json['data']['chapters'])
         if total > 0:
+            if newjson:
+                cache.write(json)
             self.__emit_signal_progress(total, 0)
             data_chapter = []
             for item in json['data']['chapters']:

@@ -334,7 +334,7 @@ class MainWindow(QtGui.QWidget):
                 bid = self.model.getId(row)
                 source = self.model.getSources(row)
                 self.model.setState(row, BookState.Dumping)
-                dump.start(row, self.path_dump, bid, self.uid,
+                dump.start(row, self.path_dump, self.path_cache, bid, self.uid,
                            source['site'], source['site_name'])
 
             self.__enabledComboBox(False)
@@ -378,7 +378,7 @@ class MainWindow(QtGui.QWidget):
                 bid = self.model.getId(row)
                 self.model.setState(row, BookState.Dumping)
                 source = self.model.getSources(row)
-                self.sender().start(row, self.path_dump, bid, self.uid,
+                self.sender().start(row, self.path_dump, self.path_cache, bid, self.uid,
                                     source['site'], source['site_name'])
 
         else:

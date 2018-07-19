@@ -5,7 +5,7 @@ import logging
 import scapi
 import time
 from PyQt4 import QtCore
-from cache import SourcesCache, ChaptersCache
+from cache import SourcesCache, ChaptersCache, SettingsCache
 from qin import utils
 
 
@@ -99,10 +99,16 @@ class SourcesThread(QtCore.QThread):
             if json['errno'] == 0:
                 if newjson:
                     cache.write(json)
+                selected_site = self.__get_selected_site()
+                # print 'selected_site', selected_site
                 sources = []
                 for item in json['sources']:
+                    selected = 0
+                    if selected_site is not None and selected_site == item['site']:
+                        selected = 1
+                    #print selected_site, item['site'], selected
                     sources.append(
-                        {'site_name': item['site_name'], 'site': item['site']})
+                        {'site_name': item['site_name'], 'site': item['site'], 'selected': selected})
                 self.__emit_signal_sources(sources)
                 code = 0
             else:
@@ -110,6 +116,16 @@ class SourcesThread(QtCore.QThread):
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
+
+    def __get_selected_site(self):
+        path_cache = os.path.join(self.__path, 'settings')
+        if not os.path.exists(path_cache):
+            os.makedirs(path_cache)
+        path_cache = os.path.join(path_cache, self.__bid)
+        cache = SettingsCache(path_cache)
+        if os.path.exists(path_cache):
+            return cache.site
+        return None
 
     def __emit_signal_sources(self, sources):
         self.signal_sources.emit(self.__index, sources)
@@ -147,6 +163,7 @@ class DumpThread(QtCore.QThread):
         self.__emit_signal_log('start')
         self.__is_overdue = utils.is_overdue(1565322209000)
         code = 1
+        self.__set_selected_site(self.__site)
         for x in xrange(1, 3):
             if self.__exit:
                 break
@@ -161,6 +178,14 @@ class DumpThread(QtCore.QThread):
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
+
+    def __set_selected_site(self, value):
+        path_cache = os.path.join(self.__path_cache, 'settings')
+        if not os.path.exists(path_cache):
+            os.makedirs(path_cache)
+        path_cache = os.path.join(path_cache, self.__bid)
+        cache = SettingsCache(path_cache)
+        cache.site = value
 
     def __save_book_info(self, path, dict):
         filename = os.path.join(path, 'book.json')
@@ -271,7 +296,7 @@ class DumpThread(QtCore.QThread):
             self.__save_chapter_info(path, data)
             if book_status != 1:
                 if os.path.exists(path_cache):
-                    print 'remove', path_cache
+                    # print 'remove', path_cache
                     os.remove(path_cache)
             return True
 

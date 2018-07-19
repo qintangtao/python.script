@@ -328,14 +328,8 @@ class MainWindow(QtGui.QWidget):
         if self.model.rowCount() > 0:
             self.model.setAllState(BookState.Failure, BookState.Free)
             for dump in self.listdump:
-                row = self.model.getFreeRow()
-                if row == -1:
+                if self.startDumpThread(dump) is False:
                     break
-                bid = self.model.getId(row)
-                source = self.model.getSources(row)
-                self.model.setState(row, BookState.Dumping)
-                dump.start(row, self.path_dump, self.path_cache, bid, self.uid,
-                           source['site'], source['site_name'])
 
             self.__enabledComboBox(False)
             self.__enabledPageButton(False)
@@ -373,13 +367,7 @@ class MainWindow(QtGui.QWidget):
             self.model.setState(index, BookState.Free)
 
         if code != 2:
-            row = self.model.getFreeRow()
-            if row > -1:
-                bid = self.model.getId(row)
-                self.model.setState(row, BookState.Dumping)
-                source = self.model.getSources(row)
-                self.sender().start(row, self.path_dump, self.path_cache, bid, self.uid,
-                                    source['site'], source['site_name'])
+            self.startDumpThread(self.sender())
 
         else:
             for dump in self.listdump:
@@ -389,3 +377,15 @@ class MainWindow(QtGui.QWidget):
             self.__enabledComboBox(True)
             self.__enabledPageButton()
             self.__enabledButton(True, stop=False)
+
+    def startDumpThread(self, dump):
+        row = self.model.getFreeRow()
+        if row == -1:
+            return False
+
+        bid = self.model.getId(row)
+        source = self.model.getSources(row)
+        self.model.setState(row, BookState.Dumping)
+        dump.start(row, self.path_dump, self.path_cache, bid,
+                   self.uid, source['site'], source['site_name'])
+        return True

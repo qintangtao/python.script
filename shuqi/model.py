@@ -60,7 +60,15 @@ class BookTableModel(QtCore.QAbstractTableModel):
         if row >= 0 and row < self.rowCount():
             self.__listdata[row]['sources'] = sources
             if len(sources) > 0:
-                self.setData2(row, TableColumn.site, sources[0]['site_name'])
+                idx = 0
+                selected = 0
+                for item in sources:
+                    if item['selected'] == 1:
+                        selected = idx
+                        break
+                    idx += 1
+                self.setData2(row, TableColumn.site, sources[
+                              selected]['site_name'])
 
     def getSources(self, row):
         if row >= 0 and row < self.rowCount():

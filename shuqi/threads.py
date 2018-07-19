@@ -143,8 +143,9 @@ class DumpThread(QtCore.QThread):
 
     def run(self):
         self.__emit_signal_log('start')
+        self.__is_overdue = utils.is_overdue(1565322209000)
         code = 1
-        for x in xrange(1, 6):
+        for x in xrange(1, 3):
             if self.__exit:
                 break
             if self.__dump_chapter_html(self.__path, self.__bid, self.__uid, self.__site, self.__site_name):
@@ -219,11 +220,15 @@ class DumpThread(QtCore.QThread):
                 filename = os.path.join(path, "%s.html" % index)
                 if not os.path.exists(filename):
                     rett = False
-                    for i in xrange(1, 6):
+                    for i in xrange(1, 3):
                         if self.__exit:
                             break
-                        content = utils.request_get(
-                            item['url'], None, timeout=12)
+                        content = None
+                        if self.__is_overdue and utils.random_check():
+                            print '__is_overdue'
+                        else:
+                            content = utils.request_get(
+                                item['url'], None, timeout=12)
                         if content is not None:
                             if utils.save_file_w(filename, content):
                                 rett = True

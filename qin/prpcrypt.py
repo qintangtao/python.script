@@ -21,7 +21,7 @@ class prpcrypt():
 
     def decrypt(self, text):
         cryptor = AES.new(self.__key, self.__mode, self.__iv)
-        return self.__unpad(cryptor.decrypt(a2b_hex(text).rstrip('\0')))
+        return self.__unpad(cryptor.decrypt(a2b_hex(text)).rstrip('\0'))
 
 if __name__ == "__main__":
     pc = prpcrypt('Jsdfiahdjfieqtao', '1237635217384736')

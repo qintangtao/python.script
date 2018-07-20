@@ -106,7 +106,7 @@ class SourcesThread(QtCore.QThread):
                     selected = 0
                     if selected_site is not None and selected_site == item['site']:
                         selected = 1
-                    #print selected_site, item['site'], selected
+                    # print selected_site, item['site'], selected
                     sources.append(
                         {'site_name': item['site_name'], 'site': item['site'], 'selected': selected})
                 self.__emit_signal_sources(sources)
@@ -201,7 +201,8 @@ class DumpThread(QtCore.QThread):
         path_cache = os.path.join(self.__path_cache, 'chapters')
         if not os.path.exists(path_cache):
             os.makedirs(path_cache)
-        path_cache = os.path.join(path_cache, self.__bid)
+        path_cache = os.path.join(
+            path_cache, utils.get_md5('%s-%s' % (self.__bid, site)))
         cache = ChaptersCache(path_cache)
         if os.path.exists(path_cache):
             json = cache.read()

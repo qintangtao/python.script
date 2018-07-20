@@ -45,7 +45,7 @@ def get_status(flag):
 
 
 def get_sign(url, time):
-    return utils.md5_str(utils.md5_str(url + time + 'eha') + url)
+    return utils.get_md5(utils.get_md5(url + time + 'eha') + url)
 
 
 def get_encrpt_url(url):

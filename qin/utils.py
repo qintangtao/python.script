@@ -8,6 +8,7 @@ import hashlib
 import requests
 import json
 import random
+import zlib
 
 '''
 logging.CRITICAL
@@ -43,13 +44,35 @@ def generate_uid():
     uid += platform.node()
     uid += '-'
     uid += platform.processor()
-    return md5_str(uid)
+    return get_md5(uid)
 
 
-def md5_str(str):
+def get_md5(str):
     hash = hashlib.md5()
     hash.update(str.encode(encoding='utf-8'))
     return hash.hexdigest()
+
+
+def get_sha1(str):
+    hash = hashlib.sha1()
+    hash.update(str.encode(encoding='utf-8'))
+    return hash.hexdigest()
+
+
+def get_crc32(str):
+    return zlib.crc32(str)
+
+
+def get_md5_file(filename):
+    return get_md5(read_file_rb(filename))
+
+
+def get_sha1_file(filename):
+    return get_sha1(read_file_rb(filename))
+
+
+def get_crc32_file(filename):
+    return get_crc32(read_file_rb(filename))
 
 
 def request_get(url, params=None, **kwargs):

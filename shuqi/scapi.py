@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import time
+import urllib
 from qin import utils
 
 # 搜索
@@ -71,22 +72,25 @@ def request_Search(uid, major, minor, status, sort, start, limit):
 
 
 def request_WapBookIntro(bid, uid):
-    url = 'http://reader.m.so.com/app/index.php?m=Api&support_read_mode=1&c=WapBookIntro&ebook=1&bid=%s&did=&mysite=&cfrom=search&loginType=1&uid=%s&ver=302&src=napp_sz' % (
-        bid, uid)
+    params = urllib.urlencode({'m': 'Api', 'support_read_mode': '1', 'c': 'WapBookIntro', 'ebook': '1', 'bid': bid,
+                               'did': '', 'mysite': '', 'cfrom': 'search', 'loginType': '1', 'uid': uid, 'ver': '302', 'src': 'napp_sz'})
+    url = 'http://reader.m.so.com/app/index.php?%s' % params
     url = get_encrpt_url(url)
     return utils.request_json_get(url)
 
 
 def request_ChangeSource(bid, uid):
-    url = 'http://api.reader.m.so.com/app/index.php?m=Api&c=ChangeSource&support_read_mode=1&type=8&bid=%s&mytitle=&mycidx=&mycid=&mydid=&read_mode=1&mysite=&isend=0&sort_type=0&loginType=1&uid=%s&ver=302&src=napp_sz' % (
-        bid, uid)
+    params = urllib.urlencode({'m': 'Api', 'c': 'ChangeSource', 'support_read_mode': '1', 'type': '8', 'bid': bid, 'mytitle': '', 'mycidx': '', 'mycid': '',
+                               'mydid': '', 'read_mode': '1', 'mysite': '', 'isend': '0', 'sort_type': '0', 'loginType': '1', 'uid': uid, 'ver': '302', 'src': 'napp_sz'})
+    url = 'http://api.reader.m.so.com/app/index.php?%s' % params
     url = get_encrpt_url(url)
     return utils.request_json_get(url)
 
 
 def request_WapChapterList(bid, uid, site):
-    url = 'http://api.reader.m.so.com/app/index.php?m=Api&support_read_mode=1&c=WapChapterList&no_chaplist=0&bid=%s&l=-1&s=0&fmt=2&mycidx=-1&mytitle=&mysite=&myurlid=&mylastcidx=&req_newest=1&type=5&site=%s&did=&read_mode=1&loginType=1&uid=%s&ver=302&src=napp_up' % (
-        bid, site, uid)
+    params = urllib.urlencode({'m': 'Api', 'support_read_mode': '1', 'c': 'WapChapterList', 'no_chaplist': '0', 'bid': bid, 'l': '-1', 's': '0', 'fmt': '2', 'mycidx': '-1', 'mytitle': '',
+                               'mysite': '', 'myurlid': '', 'mylastcidx': '', 'req_newest': '1', 'type': '5', 'site': site, 'did': '', 'read_mode': '1', 'loginType': '1', 'uid': uid, 'ver': '302', 'src': 'napp_up'})
+    url = 'http://api.reader.m.so.com/app/index.php?%s' % params
     url = get_encrpt_url(url)
     return utils.request_json_get(url)
 

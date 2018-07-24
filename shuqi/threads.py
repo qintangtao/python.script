@@ -201,11 +201,14 @@ class DumpThread(QtCore.QThread):
         path_cache = os.path.join(self.__path_cache, 'chapters')
         if not os.path.exists(path_cache):
             os.makedirs(path_cache)
-        path_cache = os.path.join(
-            path_cache, utils.get_md5('%s-%s' % (self.__bid, site)))
+        path_cache = os.path.join(path_cache, self.__bid)
         cache = ChaptersCache(path_cache)
         if os.path.exists(path_cache):
             json = cache.read()
+            if json is not None:
+                # print json['data']['book']['site'], site
+                if json['data']['book']['site'] != site:
+                    json = None
         if json is None:
             json = scapi.request_WapChapterList(bid, uid, site)
             newjson = True

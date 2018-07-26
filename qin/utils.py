@@ -161,10 +161,13 @@ def request_file(filename, url):
     return save_file_wb(filename, content)
 
 
-def download_file(path, url):
+def download_file(path, url, retry=False):
     filename = os.path.join(path, os.path.basename(url))
     if os.path.exists(filename):
-        return True
+        if retry:
+            os.remove(filename)
+        else:
+            return True
     return request_file(filename, url)
 
 

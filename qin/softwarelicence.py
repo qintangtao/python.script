@@ -23,13 +23,17 @@ def verify_licence(private_key, licence):
     try:
         d = rsa.decrypt(private_key, licence)
         data = json.loads(d)
+
+        logging.debug('machine: [%s],  [%s]', data[
+                      'machine'], get_machinecode())
         if data['machine'] != get_machinecode():
             return False
 
         createdate = data['createdate']
         finishdate = data['finishdate']
         nowdate = utils.millis_timestamp()
-        #print createdate, finishdate, nowdate
+        logging.debug(
+            'createdate[%d],  finishdate[%d],  nowdate[%d]', createdate, finishdate, nowdate)
         if nowdate <= createdate or nowdate > finishdate:
             return False
 

@@ -10,7 +10,6 @@ import json
 import random
 import zlib
 import uuid
-import psutil
 
 '''
 logging.CRITICAL
@@ -65,16 +64,6 @@ def machine_info():
 def get_mac():
     mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
     return ":".join([mac[e:e+2] for e in range(0, 11, 2)])
-
-
-def get_maclist():
-    listmac = []
-    for k, v in psutil.net_if_addrs().items():
-        for item in v:
-            address = item[1]
-            if address is not None and '-' in address and len(address) == 17:
-                listmac.append(address)
-    return listmac
 
 
 def get_md5(str):

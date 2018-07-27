@@ -9,6 +9,8 @@ import requests
 import json
 import random
 import zlib
+import uuid
+import psutil
 
 '''
 logging.CRITICAL
@@ -45,6 +47,34 @@ def generate_uid():
     uid += '-'
     uid += platform.processor()
     return get_md5(uid)
+
+
+def machine_info():
+    uid = platform.platform()
+    uid += '-'
+    uid += platform.machine()
+    uid += '-'
+    uid += platform.node()
+    uid += '-'
+    uid += platform.processor()
+    uid += '-'
+    uid += get_mac()
+    return uid
+
+
+def get_mac():
+    mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
+    return ":".join([mac[e:e+2] for e in range(0, 11, 2)])
+
+
+def get_maclist():
+    listmac = []
+    for k, v in psutil.net_if_addrs().items():
+        for item in v:
+            address = item[1]
+            if address is not None and '-' in address and len(address) == 17:
+                listmac.append(address)
+    return listmac
 
 
 def get_md5(str):
@@ -183,7 +213,7 @@ def datetime_timestamp(dt):
     return time.mktime(time.strptime(dt, '%Y-%m-%d %H:%M:%S'))
 
 
-def millis_timestamp(t):
+def millis_timestamp(t=time.time()):
     msTime = lambda: int(round(t * 1000))
     return msTime()
 

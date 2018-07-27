@@ -36,7 +36,6 @@ def verify_licence(private_key, licence):
         return True
     except Exception, e:
         logging.error(str(e))
-        print str(e)
     return False
 
 

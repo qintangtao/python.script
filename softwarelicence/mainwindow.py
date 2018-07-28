@@ -29,17 +29,19 @@ class MainWindow(QtGui.QWidget):
         self.ui.lineEdit_usefullife.setText('90')
         self.ui.pushButton_generator.clicked.connect(self.onGeneratorClicked)
         self.ui.pushButton_cancel.clicked.connect(self.onCancelClicked)
-        softwarelicence.get_machinecode()
 
     def onGeneratorClicked(self):
         machinecode = qstr2str(self.ui.lineEdit_machinecode.text())
         usefullife = qstr2str(self.ui.lineEdit_usefullife.text())
         if machinecode == '' or usefullife == '':
-            self.ui.textEdit_serialnumber.setText('')
+            self.ui.textEdit_activationcode.setText('')
             return
-        serialnumber = softwarelicence.get_serialnumber(
-            data.public_key, machinecode, int(usefullife))
-        self.ui.textEdit_serialnumber.setText(serialnumber)
+        try:
+            serialnumber = softwarelicence.get_activationcode(
+                data.public_key, machinecode, int(usefullife))
+            self.ui.textEdit_activationcode.setText(serialnumber)
+        except Exception:
+            self.ui.textEdit_activationcode.setText('')
 
     def onCancelClicked(self):
         super(MainWindow, self).close()

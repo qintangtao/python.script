@@ -10,7 +10,7 @@ import json
 import random
 import zlib
 import uuid
-
+import wmi
 '''
 logging.CRITICAL
 logging.FATAL
@@ -231,8 +231,42 @@ def random_check():
     return False
 
 if __name__ == "__main__":
-    print random_check()
+    hardware_str = ""
+    c = wmi.WMI()
+    for cpu in c.Win32_Processor():
+        print cpu.LoadPercentage
+        print cpu.ProcessorId.strip()
+        hardware_str += cpu.ProcessorId.strip()
+        hardware_str += ';'
+    for disk in c.Win32_DiskDrive():
+        print disk.SerialNumber.strip()
+        print disk.Caption
+        print long(disk.Size)/1000/1000/1000
+        hardware_str += disk.SerialNumber.strip()
+        hardware_str += ';'
+    for board in c.Win32_BaseBoard():
+        print board.SerialNumber.strip()
+        hardware_str += board.SerialNumber.strip()
+        hardware_str += ';'
+    for mac in c.Win32_NetworkAdapter():
+        print mac.MACAddress
+    for bios in c.Win32_BIOS():
+        print bios.SerialNumber.strip()
+        hardware_str += bios.SerialNumber.strip()
+        hardware_str += ';'
+
+    print hardware_str
+
+    for my_computer in c.Win32_ComputerSystem():
+        print ("Disks on", my_computer.Name)
+    for disk in c.Win32_LogicalDisk():
+        print (disk.Caption, disk.Description, disk.ProviderName or "")
+    for disk in c.Win32_LogicalDisk():
+        if disk.DriveType == 3:
+            space = 100 * long(disk.FreeSpace) / long(disk.Size)
+            print "%s has %d%% free" % (disk.Name, space)
     '''
+    print random_check()
     if is_overdue(123):
         print 'True'
     else:

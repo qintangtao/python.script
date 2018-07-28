@@ -3,15 +3,36 @@
 import os
 import json
 import logging
+import wmi
 from qin import utils
 from qin import rsa
 
 
 def get_machinecode():
-    return utils.get_md5(utils.machine_info())
+    hardware_str = ""
+    c = wmi.WMI()
+    for cpu in c.Win32_Processor():
+        hardware_str += cpu.ProcessorId.strip()
+        hardware_str += ';'
+    for disk in c.Win32_DiskDrive():
+        hardware_str += disk.SerialNumber.strip()
+        hardware_str += ';'
+    for board in c.Win32_BaseBoard():
+        hardware_str += board.SerialNumber.strip()
+        hardware_str += ';'
+    '''
+    for mac in c.Win32_NetworkAdapter():
+        print mac.MACAddress
+    for bios in c.Win32_BIOS():
+        print bios.SerialNumber.strip()
+        hardware_str += bios.SerialNumber.strip()
+        hardware_str += ';'
+    '''
+    logging.debug(hardware_str)
+    return utils.get_md5(hardware_str)
 
 
-def get_serialnumber(public_key, machine, usefullife):
+def get_activationcode(public_key, machine, usefullife):
     createdate = utils.millis_timestamp()
     finishdate = createdate + usefullife * 24 * 60 * 60 * 1000
     data = {'machine': machine, 'createdate': createdate,

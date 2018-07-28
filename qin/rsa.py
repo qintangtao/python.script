@@ -10,7 +10,6 @@ def encrypt(key, data):
     data = data.encode(encoding="utf-8")
     rsakey = RSA.importKey(key)
     length = ((rsakey.size() + 1) / 8) - 11
-    print length
     cipher = Cipher_pkcs1_v1_5.new(rsakey)
     res = []
     for i in range(0, len(data), length):

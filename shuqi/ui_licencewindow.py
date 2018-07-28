@@ -45,9 +45,9 @@ class Ui_LicenceWindow(object):
         self.label_2 = QtGui.QLabel(LicenceWindow)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
-        self.textEdit_serialnumber = QtGui.QTextEdit(LicenceWindow)
-        self.textEdit_serialnumber.setObjectName(_fromUtf8("textEdit_serialnumber"))
-        self.gridLayout.addWidget(self.textEdit_serialnumber, 1, 1, 1, 1)
+        self.textEdit_activationcode = QtGui.QTextEdit(LicenceWindow)
+        self.textEdit_activationcode.setObjectName(_fromUtf8("textEdit_activationcode"))
+        self.gridLayout.addWidget(self.textEdit_activationcode, 1, 1, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
@@ -71,7 +71,7 @@ class Ui_LicenceWindow(object):
     def retranslateUi(self, LicenceWindow):
         LicenceWindow.setWindowTitle(_translate("LicenceWindow", "软件授权", None))
         self.label.setText(_translate("LicenceWindow", "机器码", None))
-        self.label_2.setText(_translate("LicenceWindow", "序列号", None))
+        self.label_2.setText(_translate("LicenceWindow", "激活码", None))
         self.pushButton_register.setText(_translate("LicenceWindow", "注册", None))
         self.pushButton_cancel.setText(_translate("LicenceWindow", "取消", None))
 

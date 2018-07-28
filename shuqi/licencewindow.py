@@ -27,12 +27,12 @@ class LicenceWindow(QtGui.QWidget):
         self.ui = Ui_LicenceWindow()
         self.ui.setupUi(self)
         self.ui.lineEdit_machinecode.setText(softwarelicence.get_machinecode())
-        self.ui.textEdit_serialnumber.setText(u"请把机器码发给管理员获取授权序列号")
+        self.ui.textEdit_activationcode.setText(u"请把机器码发给管理员获取激活码")
         self.ui.pushButton_register.clicked.connect(self.onRegisterClicked)
         self.ui.pushButton_cancel.clicked.connect(self.onCancelClicked)
 
     def onRegisterClicked(self):
-        serialnumber = qstr2str(self.ui.textEdit_serialnumber.toPlainText())
+        serialnumber = qstr2str(self.ui.textEdit_activationcode.toPlainText())
         if serialnumber == '':
             self.ui.textEdit_serialnumber.setText('')
             return
@@ -42,7 +42,7 @@ class LicenceWindow(QtGui.QWidget):
             QtGui.qApp.exit(1)
         else:
             QtGui.QMessageBox.critical(
-                self, u"软件授权", u"错误的序列号!", QtGui.QMessageBox.Ok)
+                self, u"软件授权", u"激活码失效!", QtGui.QMessageBox.Ok)
 
     def onCancelClicked(self):
         super(LicenceWindow, self).close()

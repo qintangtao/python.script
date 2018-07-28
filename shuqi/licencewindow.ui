@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>16</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
     <number>12</number>
    </property>
    <item>
@@ -51,12 +60,12 @@
      <item row="1" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>序列号</string>
+        <string>激活码</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QTextEdit" name="textEdit_serialnumber"/>
+      <widget class="QTextEdit" name="textEdit_activationcode"/>
      </item>
     </layout>
    </item>

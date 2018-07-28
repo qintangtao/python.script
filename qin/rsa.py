@@ -6,9 +6,11 @@ from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
 import base64
 
 
-def encrypt(key, data, length=100):
+def encrypt(key, data):
     data = data.encode(encoding="utf-8")
     rsakey = RSA.importKey(key)
+    length = ((rsakey.size() + 1) / 8) - 11
+    print length
     cipher = Cipher_pkcs1_v1_5.new(rsakey)
     res = []
     for i in range(0, len(data), length):
@@ -16,9 +18,10 @@ def encrypt(key, data, length=100):
     return base64.b64encode("".join(res))
 
 
-def decrypt(key, data, length=128):
+def decrypt(key, data):
     data = base64.b64decode(data)
     rsakey = RSA.importKey(key)
+    length = (rsakey.size() + 1) / 8
     cipher = Cipher_pkcs1_v1_5.new(rsakey)
     res = []
     for i in range(0, len(data), length):
@@ -34,7 +37,7 @@ def generator(bits=1024):
 def main():
     key = generator()
     print key
-    d = encrypt(key[1], 'qintangtasdfadsfasdfasdao' * 100)
+    d = encrypt(key[1], 'qintangtasdfadsfasdfasdao' * 110)
     print d
     print decrypt(key[0], d)
 

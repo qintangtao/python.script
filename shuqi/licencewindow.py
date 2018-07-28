@@ -2,9 +2,10 @@
 # -*- coding: UTF-8 -*-
 import res
 import data
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 from ui_licencewindow import Ui_LicenceWindow
 from qin import softwarelicence
+import logging
 
 
 def gbk2utf8(txt):
@@ -32,12 +33,13 @@ class LicenceWindow(QtGui.QWidget):
         self.ui.pushButton_cancel.clicked.connect(self.onCancelClicked)
 
     def onRegisterClicked(self):
-        serialnumber = qstr2str(self.ui.textEdit_activationcode.toPlainText())
-        if serialnumber == '':
+        activationcode = qstr2str(self.ui.textEdit_activationcode.toPlainText())
+        if activationcode == '':
             self.ui.textEdit_serialnumber.setText('')
             return
-        if softwarelicence.verify_licence(data.private_key, serialnumber):
-            softwarelicence.write_licence(serialnumber)
+        logging.debug(activationcode)
+        if softwarelicence.verify_licence(data.private_key, activationcode):
+            softwarelicence.write_licence(activationcode)
             QtGui.QMessageBox.information(self, u"软件授权", u"注册成功!")
             QtGui.qApp.exit(1)
         else:

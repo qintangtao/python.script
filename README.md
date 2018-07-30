@@ -67,5 +67,5 @@ Dump memory to file
 @param ea: linear address to save from
 @param size: number of bytes to save
 
-@return: 0 - error, 1 - ok
+@return: 0 - error, 1 - ok {wan3838}
 ```

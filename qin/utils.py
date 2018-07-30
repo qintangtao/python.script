@@ -207,19 +207,23 @@ def millis_timestamp(t=time.time()):
     return msTime()
 
 
-def is_overdue(timestamp):
+def request_nowtime():
     try:
         r = requests.get('http://www.beijing-time.org/')
         if r.ok:
             tm = gmt_timestamp(r.headers['Date'])
-            mstm = millis_timestamp(tm)
-            # print tm, mstm, timestamp
-            if mstm > timestamp:
-                return True
+            return millis_timestamp(tm)
         else:
-            print 'r is not ok'
+            logging.error('r is not ok')
     except Exception, e:
-        print str(e)
+        logging.error(str(e))
+    return 0
+
+
+def is_overdue(timestamp):
+    nowtime = request_nowtime()
+    if nowtime > timestamp:
+        return True
     return False
 
 

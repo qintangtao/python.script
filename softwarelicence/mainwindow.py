@@ -26,7 +26,7 @@ class MainWindow(QtGui.QWidget):
         self.setWindowIcon(QtGui.QIcon(':/bug.ico'))
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.lineEdit_usefullife.setText('90')
+        self.ui.lineEdit_usefullife.setText('30')
         self.ui.pushButton_generator.clicked.connect(self.onGeneratorClicked)
         self.ui.pushButton_cancel.clicked.connect(self.onCancelClicked)
 

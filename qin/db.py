@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import os
 import logging
 import sqlite3
 
@@ -8,40 +7,40 @@ import sqlite3
 class DbSqlite3(object):
 
     def __init__(self, database):
-        self.__open(database)
+        self._open(database)
 
     def __del__(self):
-        self.__close()
+        self._close()
 
-    def __open(self, database):
+    def _open(self, database):
         try:
-            self.__conn = sqlite3.connect(database)
+            self._conn = sqlite3.connect(database)
         except Exception, e:
             logging.error(str(e))
-            self.__conn = None
+            self._conn = None
 
-    def __close(self):
-        if self.__conn:
-            self.__conn.close()
-            self.__conn = None
+    def _close(self):
+        if self._conn:
+            self._conn.close()
+            self._conn = None
 
-    def __executeDML(self, sql):
+    def _executeDML(self, sql):
         # INSERT、UPDATE、DELETE
-        if self.__conn:
+        if self._conn:
             try:
-                c = self.__conn.cursor()
+                c = self._conn.cursor()
                 c.execute(sql)
-                c.commit()
+                self._conn.commit()
                 return True
             except Exception, e:
                 logging.error(str(e))
         return False
 
-    def __executeDQL(self, sql):
+    def _executeDQL(self, sql):
         # SELECT
-        if self.__conn:
+        if self._conn:
             try:
-                c = self.__conn.cursor()
+                c = self._conn.cursor()
                 return c.execute(sql)
             except Exception, e:
                 logging.error(str(e))

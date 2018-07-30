@@ -1,12 +1,9 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import os
-import json
-import logging
-from qin.prpcrypt import prpcrypt
-from qin import utils
+from qin.cache import BaseCache
 
-
+'''
 class BaseCache(object):
 
     def __init__(self, path, key, iv):
@@ -36,6 +33,7 @@ class BaseCache(object):
         except Exception, e:
             logging.error(str(e))
         return None
+'''
 
 
 class SourcesCache(BaseCache):

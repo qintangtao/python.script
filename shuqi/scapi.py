@@ -72,8 +72,27 @@ def get_encrpt_url(url):
     return ("%s&encode_id=%s&encode_sign=%s" % (url, encode_id, encode_sign))
 
 
+def param_join(params):
+    param_str = ''
+    for key in params:
+        if param_str != '':
+            param_str += '&'
+        param_str += key
+        param_str += '='
+        param_str += str(params[key])
+    return param_str
+
+
 def request_get(params, encode=True):
     url = 'http://reader.m.so.com/app/index.php?%s' % urllib.urlencode(params)
+    if encode:
+        url = get_encrpt_url(url)
+    logging.debug(url)
+    return utils.request_json_get(url)
+
+
+def request_get2(params, encode=True):
+    url = 'http://reader.m.so.com/app/index.php?%s' % param_join(params)
     if encode:
         url = get_encrpt_url(url)
     logging.debug(url)
@@ -85,20 +104,20 @@ def request_Search(uid, major, minor, status, sort, start, limit):
                         'sort': sort, 's': start, 'n': limit, 'from': 'test', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'}, False)
 
 
-def request_SearchByq(uid, q, start, limit):
-    return request_get({'m': 'Api', 'c': 'Search', 'a': 'search', 'q': q, 's': start, 'n': limit, 'from': 'search', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
+def request_SearchBy(uid, q, start, limit):
+    return request_get2({'m': 'Api', 'c': 'Search', 'a': 'search', 'q': q, 's': start, 'n': limit, 'from': 'search', 'loginType': 1, 'uid': uid, 'ver': 302, 'src': 'napp_sz'})
 
 
 def request_SearchByName(uid, name, start, limit):
-    return request_SearchByq(uid, 'name:(%s)' % name, start, limit)
+    return request_SearchBy(uid, 'name:(%s)' % name, start, limit)
 
 
 def request_SearchByAuthor(uid, author, start, limit):
-    return request_SearchByq(uid, 'author:(%s)' % author, start, limit)
+    return request_SearchBy(uid, 'author:(%s)' % author, start, limit)
 
 
 def request_SearchByTags(uid, tags, start, limit):
-    return request_SearchByq(uid, 'tags:(%s)' % tags, start, limit)
+    return request_SearchBy(uid, 'tags:(%s)' % tags, start, limit)
 
 
 def request_WapBookIntro(bid, uid):

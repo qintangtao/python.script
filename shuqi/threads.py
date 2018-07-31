@@ -61,6 +61,64 @@ class SearchThread(QtCore.QThread):
         self.signal_finished.emit(code)
 
 
+class SearchByThread(QtCore.QThread):
+
+    signal_search = QtCore.pyqtSignal(int, list)
+    signal_finished = QtCore.pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        super(SearchByThread, self).__init__(parent)
+        self.__exit = False
+
+    def start(self, uid, by, text, start, limit):
+        self.__uid = uid
+        self.__by = by
+        self.__text = text
+        self.__start = start
+        self.__limit = limit
+        self.__exit = False
+        super(SearchByThread, self).start()
+
+    def stop(self):
+        self.__exit = True
+        # self.wait()
+
+    def run(self):
+        code = 1
+        json = None
+        if self.__by == 'name':
+            json = scapi.request_SearchByName(
+                self.__uid, self.__text, self.__start, self.__limit)
+        elif self.__by == 'author':
+            json = scapi.request_SearchByAuthor(
+                self.__uid, self.__text, self.__start, self.__limit)
+        elif self.__by == 'tags':
+            json = scapi.request_SearchByTags(
+                self.__uid, self.__text, self.__start, self.__limit)
+        if json is not None:
+            print json
+            if json['errno'] == 0:
+                listdata = []
+                for item in json['data']:
+                    listdata.append({'id': item['id'],
+                                     'title': item['name'],
+                                     'author': item['author'],
+                                     'status': scapi.get_status(str(item['status']))})
+                self.__emit_signal_search(json['total'], listdata)
+                code = 0
+            else:
+                logging.error('errno: %s', json['errno'])
+        if self.__exit:
+            code = 2
+        self.__emit_signal_finished(code)
+
+    def __emit_signal_search(self, total, search):
+        self.signal_search.emit(total, search)
+
+    def __emit_signal_finished(self, code):
+        self.signal_finished.emit(code)
+
+
 class SourcesThread(QtCore.QThread):
 
     signal_sources = QtCore.pyqtSignal(int, list)

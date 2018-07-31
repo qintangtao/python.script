@@ -6,10 +6,11 @@ import scapi
 import data
 from PyQt4 import QtGui, QtCore
 from ui_mainwindow import Ui_MainWindow
-from threads import SearchThread, SourcesThread, DumpThread
+from threads import SearchThread, SearchByThread, SourcesThread, DumpThread
 from model import BookState, BookTableModel
 from delegate import BookItemDelegate
 from qin import utils
+from dbshuqi import DbShuqi
 
 
 def gbk2utf8(txt):
@@ -42,6 +43,7 @@ class MainWindow(QtGui.QWidget):
         self.path_cache = os.path.join(self.path, 'cache')
         if not os.path.exists(self.path_cache):
             os.makedirs(self.path_cache)
+        self.db = DbShuqi(self.path)
         self.__init_ui()
 
     def __init_ui(self):
@@ -139,7 +141,7 @@ class MainWindow(QtGui.QWidget):
         self.ui.tableView.setColumnWidth(
             4, self.ui.tableView.width() * 13 / 100)
 
-    def __request_books(self):
+    def __request_search(self):
         major = qstr2str(self.ui.comboBox_major.currentText())
         minor = qstr2str(self.ui.comboBox_minor.currentText())
         if minor == u'全部':
@@ -171,6 +173,45 @@ class MainWindow(QtGui.QWidget):
         self.__enabledComboBox(False)
         self.__enabledPageButton(False)
         self.__enabledButton(False)
+
+    def __request_searchby(self):
+        by = 'name'
+        if self.ui.radioButton_name.isChecked():
+            by = 'name'
+        elif self.ui.radioButton_author.isChecked():
+            by = 'author'
+        elif self.ui.radioButton_tags.isChecked():
+            by = 'tags'
+        else:
+            pass
+        text = qstr2str(self.ui.lineEdit_search.text())
+        if text == '':
+            return
+
+        print by, text
+
+        self.search = SearchByThread(self)
+        self.search.signal_search.connect(self.onSignalSearch)
+        self.search.signal_finished.connect(self.onSignalSearchFinished)
+        self.search.start(self.uid, by, text, self.page_index *
+                          self.page_limit, self.page_limit)
+
+        self.model.updateData([])
+        self.__enabledComboBox(False)
+        self.__enabledPageButton(False)
+        self.__enabledButton(False)
+
+    def __request_cache(self):
+        pass
+
+    def __request_books(self):
+        currentIndex = self.ui.tabWidget.currentIndex()
+        if currentIndex == 0:
+            self.__request_search()
+        elif currentIndex == 1:
+            self.__request_searchby()
+        elif currentIndex == 2:
+            self.__request_cache()
 
     def __enabledComboBox(self, enabled):
         self.ui.comboBox_gender.setEnabled(enabled)

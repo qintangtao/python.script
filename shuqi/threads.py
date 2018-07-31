@@ -238,6 +238,7 @@ class DumpThread(QtCore.QThread):
         utils.download_file(path_book, book['cover'])
 
         cache_book = MemoryCache(os.path.join(path_book, 'book.json'))
+        cache_book.bid = bid
         cache_book.cover = book['cover']
         cache_book.clazz = book['clazz']
         cache_book.name = book['name']

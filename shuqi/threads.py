@@ -10,6 +10,51 @@ from qin import utils
 from qin.cache import MemoryCache
 
 
+class SearchCacheThread(QtCore.QThread):
+
+    signal_search = QtCore.pyqtSignal(int, list)
+    signal_finished = QtCore.pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        super(SearchCacheThread, self).__init__(parent)
+        self.__exit = False
+
+    def start(self, db, status, start, limit):
+        self.__db = db
+        self.__status = status
+        self.__start = start
+        self.__limit = limit
+        self.__exit = False
+        super(SearchCacheThread, self).start()
+
+    def stop(self):
+        self.__exit = True
+        # self.wait()
+
+    def run(self):
+        code = 1
+        total = self.__db.count(self.__status)
+        cursor = self.__db.query(self.__status, self.__start, self.__limit)
+        if cursor is not None:
+            listdata = []
+            for row in cursor:
+                listdata.append({'id': row[0],
+                                 'title': row[1],
+                                 'author': row[2],
+                                 'status': scapi.get_status(str(row[3]))})
+            self.__emit_signal_search(total, listdata)
+            code = 0
+        if self.__exit:
+            code = 2
+        self.__emit_signal_finished(code)
+
+    def __emit_signal_search(self, total, search):
+        self.signal_search.emit(total, search)
+
+    def __emit_signal_finished(self, code):
+        self.signal_finished.emit(code)
+
+
 class SearchThread(QtCore.QThread):
 
     signal_search = QtCore.pyqtSignal(int, list)
@@ -96,7 +141,6 @@ class SearchByThread(QtCore.QThread):
             json = scapi.request_SearchByTags(
                 self.__uid, self.__text, self.__start, self.__limit)
         if json is not None:
-            print json
             if json['errno'] == 0:
                 listdata = []
                 for item in json['data']:

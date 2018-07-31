@@ -6,11 +6,12 @@ import scapi
 import data
 from PyQt4 import QtGui, QtCore
 from ui_mainwindow import Ui_MainWindow
-from threads import SearchThread, SearchByThread, SourcesThread, DumpThread
+from threads import SearchThread, SearchByThread, SearchCacheThread, SourcesThread, DumpThread
 from model import BookState, BookTableModel
 from delegate import BookItemDelegate
 from qin import utils
 from dbshuqi import DbShuqi
+from qin.cache import MemoryCache
 
 
 def gbk2utf8(txt):
@@ -18,7 +19,7 @@ def gbk2utf8(txt):
 
 
 def utf82gbk(txt):
-    return unicode(txt, 'utf-8').encode('gbk')
+    return unicode(txt, 'utf8').encode('gbk')
 
 
 def qstr2str(txt):
@@ -52,6 +53,7 @@ class MainWindow(QtGui.QWidget):
             'activated(QString)'), self.onComboBoxGenderActivated)
         self.connect(self.ui.comboBox_major, QtCore.SIGNAL(
             'activated(QString)'), self.onComboBoxMajorActivated)
+        self.ui.pushButton_sync.clicked.connect(self.onSyncClicked)
         self.ui.lineEdit_page_index.returnPressed.connect(
             self.onPageIndexReturnPressed)
         self.ui.pushButton_before_page.clicked.connect(
@@ -80,6 +82,8 @@ class MainWindow(QtGui.QWidget):
         self.ui.tableView.horizontalHeader().setMovable(False)
         self.ui.tableView.horizontalHeader().setSelectionMode(
             QtGui.QAbstractItemView.NoSelection)
+        self.ui.radioButton_name.setChecked(True)
+        self.ui.radioButton_status_all.setChecked(True)
         self.__init_gender()
         self.__init_status_sort()
         self.__init_dump()
@@ -188,8 +192,6 @@ class MainWindow(QtGui.QWidget):
         if text == '':
             return
 
-        print by, text
-
         self.search = SearchByThread(self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
@@ -201,8 +203,27 @@ class MainWindow(QtGui.QWidget):
         self.__enabledPageButton(False)
         self.__enabledButton(False)
 
-    def __request_cache(self):
-        pass
+    def __request_searchcache(self):
+        status = -1
+        if self.ui.radioButton_status_all.isChecked():
+            status = -1
+        elif self.ui.radioButton_status_unfinished.isChecked():
+            status = 0
+        elif self.ui.radioButton_status_finished.isChecked():
+            status = 1
+        else:
+            pass
+
+        self.search = SearchCacheThread(self)
+        self.search.signal_search.connect(self.onSignalSearch)
+        self.search.signal_finished.connect(self.onSignalSearchFinished)
+        self.search.start(self.db, status, self.page_index *
+                          self.page_limit, self.page_limit)
+
+        self.model.updateData([])
+        self.__enabledComboBox(False)
+        self.__enabledPageButton(False)
+        self.__enabledButton(False)
 
     def __request_books(self):
         currentIndex = self.ui.tabWidget.currentIndex()
@@ -211,7 +232,7 @@ class MainWindow(QtGui.QWidget):
         elif currentIndex == 1:
             self.__request_searchby()
         elif currentIndex == 2:
-            self.__request_cache()
+            self.__request_searchcache()
 
     def __enabledComboBox(self, enabled):
         self.ui.comboBox_gender.setEnabled(enabled)
@@ -430,3 +451,21 @@ class MainWindow(QtGui.QWidget):
         dump.start(row, self.path_dump, self.path_cache, bid,
                    self.uid, source['site'], source['site_name'])
         return True
+
+    def onSyncClicked(self):
+        self.ui.pushButton_sync.setEnabled(False)
+        total = 0
+        listdir = os.listdir(self.path_dump)
+        for dirname in listdir:
+            try:
+                self.ui.label_cache_msg.setText(dirname.decode('gbk'))
+                filename = os.path.join(self.path_dump, dirname, 'book.json')
+                if os.path.exists(filename):
+                    cache = MemoryCache(filename)
+                    if self.db.insert({'bookid': cache.bid, 'name': cache.name,
+                                       'author': cache.author, 'status': cache.status}):
+                        total += 1
+            except Exception, e:
+                print str(e)
+        self.ui.label_cache_msg.setText(u'同步%s条数据' % total)
+        self.ui.pushButton_sync.setEnabled(True)

@@ -45,7 +45,7 @@ class MainWindow(QtGui.QWidget):
         self.path_cache = os.path.join(self.path, 'cache')
         if not os.path.exists(self.path_cache):
             os.makedirs(self.path_cache)
-        self.db = DbShuqi(self.path)
+        self.db = DbShuqi(self.path_cache)
         self.__init_ui()
 
     def __init_ui(self):

@@ -7,6 +7,7 @@ import time
 from PyQt4 import QtCore
 from cache import SourcesCache, ChaptersCache, SettingsCache
 from qin import utils
+from qin.cache import MemoryCache
 
 
 class SearchThread(QtCore.QThread):
@@ -118,13 +119,16 @@ class SourcesThread(QtCore.QThread):
         self.__emit_signal_finished(code)
 
     def __get_selected_site(self):
-        path_cache = os.path.join(self.__path, 'settings')
-        if not os.path.exists(path_cache):
-            os.makedirs(path_cache)
-        path_cache = os.path.join(path_cache, self.__bid)
-        cache = SettingsCache(path_cache)
-        if os.path.exists(path_cache):
-            return cache.site
+        try:
+            path_cache = os.path.join(self.__path, 'settings')
+            if not os.path.exists(path_cache):
+                os.makedirs(path_cache)
+            path_cache = os.path.join(path_cache, self.__bid)
+            cache = SettingsCache(path_cache)
+            if os.path.exists(path_cache):
+                return cache.site
+        except Exception, e:
+            logging.error(str(e))
         return None
 
     def __emit_signal_sources(self, sources):
@@ -187,14 +191,6 @@ class DumpThread(QtCore.QThread):
         cache = SettingsCache(path_cache)
         cache.site = value
 
-    def __save_book_info(self, path, dict):
-        filename = os.path.join(path, 'book.json')
-        return utils.save_json(filename, dict)
-
-    def __save_chapter_info(self, path, dict):
-        filename = os.path.join(path, 'chapter.json')
-        return utils.save_json(filename, dict)
-
     def __dump_chapter_html(self, path, bid, uid, site, site_name):
         json = None
         newjson = False
@@ -206,7 +202,6 @@ class DumpThread(QtCore.QThread):
         if os.path.exists(path_cache):
             json = cache.read()
             if json is not None:
-                # print json['data']['book']['site'], site
                 if json['data']['book']['site'] != site:
                     json = None
         if json is None:
@@ -230,39 +225,59 @@ class DumpThread(QtCore.QThread):
             return False
         book = json['data']['book']
 
-        path = os.path.join(
-            path, "%s-%s" % (book['name'].replace(':', '_'), book['author']), site_name)
-        if not os.path.exists(path):
+        path_book = os.path.join(
+            path, "%s-%s" % (book['name'].replace(':', '_'), book['author']))
+        if not os.path.exists(path_book):
             try:
-                os.makedirs(path)
+                os.makedirs(path_book)
             except Exception, e:
                 logging.error(str(e))
                 return False
 
-        book_status = book['status']
-        self.__emit_signal_log('save book info')
-        data = {'cover': book['cover'], 'clazz': book['clazz'], 'name': book[
-            'name'], 'author': book['author'], 'desc': book['desc'], 'status': book['status'], 'site': site, 'site_name': site_name}
+        self.__emit_signal_log('download cover.')
+        utils.download_file(path_book, book['cover'])
 
-        self.__emit_signal_log('start 2')
-        self.__save_book_info(path, data)
+        cache_book = MemoryCache(os.path.join(path_book, 'book.json'))
+        cache_book.cover = book['cover']
+        cache_book.clazz = book['clazz']
+        cache_book.name = book['name']
+        cache_book.author = book['author']
+        cache_book.desc = book['desc']
+        cache_book.status = book['status']
+        cache_book.site = site
+        cache_book.site_name = site_name
 
-        self.__emit_signal_log('start 3')
-        utils.download_file(path, book['cover'])
-
-        self.__emit_signal_log('start 4')
+        self.__emit_signal_log('start dump chapter')
         total = len(json['data']['chapters'])
         if total > 0:
+
+            logging.info(str(json))
             if newjson:
                 cache.write(json)
-            self.__emit_signal_progress(total, 0)
-            data_chapter = []
+
+            path_chapter = os.path.join(path_book, site_name)
+            if not os.path.exists(path_chapter):
+                try:
+                    os.makedirs(path_chapter)
+                except Exception, e:
+                    logging.error(str(e))
+                    return False
+
+            cache_chapter = MemoryCache(
+                os.path.join(path_chapter, 'chapter.json'))
+            cache_chapter.total = total
+            cache_chapter.index = 0
+            cache_chapter.chapters = []
+
+            self.__emit_signal_progress(
+                cache_chapter.total, cache_chapter.index)
             for item in json['data']['chapters']:
                 if self.__exit:
                     break
+
                 self.__emit_signal_log(item['title'])
                 index = item['cidx']
-                filename = os.path.join(path, "%s.html" % index)
+                filename = os.path.join(path_chapter, "%s.html" % index)
                 if not os.path.exists(filename):
                     rett = False
                     for i in xrange(1, 3):
@@ -287,7 +302,10 @@ class DumpThread(QtCore.QThread):
                         break
                     if rett is False:
                         return False
-                data_chapter.append({'cidx': index, 'title': item['title']})
+
+                cache_chapter.index = index
+                cache_chapter.chapters.append(
+                    {'cidx': index, 'title': item['title']})
                 self.__emit_signal_progress(total, index)
         else:
             logging.error('chapters is empty')
@@ -296,11 +314,8 @@ class DumpThread(QtCore.QThread):
         if self.__exit:
             return False
         else:
-            data = {'chapters': data_chapter}
-            self.__save_chapter_info(path, data)
-            if book_status != 1:
+            if book['status'] != 1:
                 if os.path.exists(path_cache):
-                    # print 'remove', path_cache
                     os.remove(path_cache)
             return True
 

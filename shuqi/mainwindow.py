@@ -12,6 +12,7 @@ from delegate import BookItemDelegate
 from qin import utils
 from dbshuqi import DbShuqi
 from qin.cache import MemoryCache
+from cache import SettingsCache
 
 
 def gbk2utf8(txt):
@@ -452,6 +453,12 @@ class MainWindow(QtGui.QWidget):
                    self.uid, source['site'], source['site_name'])
         return True
 
+    def __set_selected_site(self, bid, site):
+        path = os.path.join(self.path_cache, 'settings', bid)
+        if not os.path.exists(path):
+            cache = SettingsCache(path)
+            cache.site = site
+
     def onSyncClicked(self):
         self.ui.pushButton_sync.setEnabled(False)
         total = 0
@@ -462,6 +469,7 @@ class MainWindow(QtGui.QWidget):
                 filename = os.path.join(self.path_dump, dirname, 'book.json')
                 if os.path.exists(filename):
                     cache = MemoryCache(filename)
+                    self.__set_selected_site(cache.bid, cache.site)
                     if self.db.insert({'bookid': cache.bid, 'name': cache.name,
                                        'author': cache.author, 'status': cache.status}):
                         total += 1

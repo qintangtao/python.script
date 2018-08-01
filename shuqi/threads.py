@@ -217,7 +217,8 @@ class SearchCacheThread(QtCore.QThread):
                             site_name = item['site_name']
                         if item['selected'] == 1:
                             site_name = item['site_name']
-                (progress_total, progress_index) = get_progress(self.__path_dump, row[1], row[2], site_name)
+                (progress_total, progress_index) = get_progress(
+                    self.__path_dump, row[1], row[2], site_name)
                 listdata.append({'id': row[0],
                                  'title': row[1],
                                  'author': row[2],
@@ -403,6 +404,26 @@ class DumpThread(QtCore.QThread):
         cache_book.status = book['status']
         cache_book.site = site
         cache_book.site_name = site_name
+
+        try:
+            cache_book.sources
+        except Exception:
+            cache_book.sources = [{'site': site, 'site_name': site_name}]
+
+        try:
+            findSite = False
+            for item in cache_book.sources:
+                if site == item['site']:
+                    findSite = True
+                else:
+                    if not os.path.exists(os.path.join(path_book, item['site_name'])):
+                        print 'remove', item['site_name']
+                        cache_book.sources.remove(item)
+            if findSite is False:
+                cache_book.sources.append(
+                    {'site': site, 'site_name': site_name})
+        except Exception, e:
+            logging.error(str(e))
 
         self.__emit_signal_log('start dump chapter')
         total = len(json['data']['chapters'])

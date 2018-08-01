@@ -71,14 +71,65 @@ def get_progress(path, name, author, site_name):
     return (total, index)
 
 
-class SearchThread(QtCore.QThread):
+class BaseThread(QtCore.QThread):
 
     signal_search = QtCore.pyqtSignal(int, list)
     signal_finished = QtCore.pyqtSignal(int)
 
-    def __init__(self, parent=None):
-        super(SearchThread, self).__init__(parent)
-        self.__exit = False
+    def __init__(self, path_cache, path_dump, parent=None):
+        super(BaseThread, self).__init__(parent)
+        self._path_cache = path_cache
+        self._path_dump = path_dump
+        self._exit = False
+
+    def start(self):
+        self._exit = False
+        super(BaseThread, self).start()
+
+    def stop(self):
+        self._exit = True
+        # self.wait()
+
+    def _parse_data(self, list):
+        listdata = []
+        for row in list:
+            sources = get_sources(self._path_cache, row['id'])
+            site_name = ''
+            if sources is not None:
+                for item in sources:
+                    if site_name == '':
+                        site_name = item['site_name']
+                    if item['selected'] == 1:
+                        site_name = item['site_name']
+            (progress_total, progress_index) = get_progress(
+                self._path_dump, row['name'], row['author'], site_name)
+            listdata.append({'id': row['id'],
+                             'name': row['name'],
+                             'author': row['author'],
+                             'status': row['status'],
+                             'sources': sources,
+                             'site': site_name,
+                             'progress_total': progress_total,
+                             'progress_index': progress_index})
+        '''
+        listdata = []
+        for item in list:
+            listdata.append({'id': item['id'],
+                             'name': item['name'],
+                             'author': item['author'],
+                             'status': item['status']})
+        '''
+
+        return listdata
+
+    def _emit_signal_search(self, total, search):
+        self.signal_search.emit(total, search)
+
+    def _emit_signal_finished(self, code):
+        self.signal_finished.emit(code)
+
+
+class SearchThread(BaseThread):
 
     def start(self, uid, major, minor, status, sort, start, limit):
         self.__uid = uid
@@ -88,12 +139,7 @@ class SearchThread(QtCore.QThread):
         self.__sort = sort
         self.__start = start
         self.__limit = limit
-        self.__exit = False
         super(SearchThread, self).start()
-
-    def stop(self):
-        self.__exit = True
-        # self.wait()
 
     def run(self):
         code = 1
@@ -101,35 +147,17 @@ class SearchThread(QtCore.QThread):
                                     self.__status, self.__sort, self.__start, self.__limit)
         if json is not None:
             if json['errno'] == 0:
-                listdata = []
-                for item in json['data']:
-                    listdata.append({'id': item['id'],
-                                     'name': item['name'],
-                                     'author': item['author'],
-                                     'status': item['status']})
-                self.__emit_signal_search(json['total'], listdata)
+                listdata = self._parse_data(json['data'])
+                self._emit_signal_search(json['total'], listdata)
                 code = 0
             else:
                 logging.error('errno: %s', json['errno'])
-        if self.__exit:
+        if self._exit:
             code = 2
-        self.__emit_signal_finished(code)
-
-    def __emit_signal_search(self, total, search):
-        self.signal_search.emit(total, search)
-
-    def __emit_signal_finished(self, code):
-        self.signal_finished.emit(code)
+        self._emit_signal_finished(code)
 
 
-class SearchByThread(QtCore.QThread):
-
-    signal_search = QtCore.pyqtSignal(int, list)
-    signal_finished = QtCore.pyqtSignal(int)
-
-    def __init__(self, parent=None):
-        super(SearchByThread, self).__init__(parent)
-        self.__exit = False
+class SearchByThread(BaseThread):
 
     def start(self, uid, by, text, start, limit):
         self.__uid = uid
@@ -137,12 +165,7 @@ class SearchByThread(QtCore.QThread):
         self.__text = text
         self.__start = start
         self.__limit = limit
-        self.__exit = False
         super(SearchByThread, self).start()
-
-    def stop(self):
-        self.__exit = True
-        # self.wait()
 
     def run(self):
         code = 1
@@ -158,85 +181,36 @@ class SearchByThread(QtCore.QThread):
                 self.__uid, self.__text, self.__start, self.__limit)
         if json is not None:
             if json['errno'] == 0:
-                listdata = []
-                for item in json['data']:
-                    listdata.append({'id': item['id'],
-                                     'name': item['name'],
-                                     'author': item['author'],
-                                     'status': item['status']})
-                self.__emit_signal_search(json['total'], listdata)
+                listdata = self._parse_data(json['data'])
+                self._emit_signal_search(json['total'], listdata)
                 code = 0
             else:
                 logging.error('errno: %s', json['errno'])
-        if self.__exit:
+        if self._exit:
             code = 2
-        self.__emit_signal_finished(code)
-
-    def __emit_signal_search(self, total, search):
-        self.signal_search.emit(total, search)
-
-    def __emit_signal_finished(self, code):
-        self.signal_finished.emit(code)
+        self._emit_signal_finished(code)
 
 
-class SearchCacheThread(QtCore.QThread):
+class SearchCacheThread(BaseThread):
 
-    signal_search = QtCore.pyqtSignal(int, list)
-    signal_finished = QtCore.pyqtSignal(int)
-
-    def __init__(self, parent=None):
-        super(SearchCacheThread, self).__init__(parent)
-        self.__exit = False
-
-    def start(self, path_cache, path_dump, db, status, start, limit):
-        self.__path_cache = path_cache
-        self.__path_dump = path_dump
+    def start(self, db, status, start, limit):
         self.__db = db
         self.__status = status
         self.__start = start
         self.__limit = limit
-        self.__exit = False
         super(SearchCacheThread, self).start()
-
-    def stop(self):
-        self.__exit = True
-        # self.wait()
 
     def run(self):
         code = 1
         total = self.__db.count(self.__status)
         listquery = self.__db.query(self.__status, self.__start, self.__limit)
         if listquery is not None:
-            listdata = []
-            for row in listquery:
-                sources = get_sources(self.__path_cache, row['id'])
-                site_name = ''
-                if sources is not None:
-                    for item in sources:
-                        if site_name == '':
-                            site_name = item['site_name']
-                        if item['selected'] == 1:
-                            site_name = item['site_name']
-                (progress_total, progress_index) = get_progress(self.__path_dump, row['name'], row['author'], site_name)
-                listdata.append({'id': row['id'],
-                                 'name': row['name'],
-                                 'author': row['author'],
-                                 'status': row['status'],
-                                 'sources': sources,
-                                 'site': site_name,
-                                 'progress_total': progress_total,
-                                 'progress_index': progress_index})
-            self.__emit_signal_search(total, listdata)
+            listdata = self._parse_data(listquery)
+            self._emit_signal_search(total, listdata)
             code = 0
-        if self.__exit:
+        if self._exit:
             code = 2
-        self.__emit_signal_finished(code)
-
-    def __emit_signal_search(self, total, search):
-        self.signal_search.emit(total, search)
-
-    def __emit_signal_finished(self, code):
-        self.signal_finished.emit(code)
+        self._emit_signal_finished(code)
 
 
 class SourcesThread(QtCore.QThread):

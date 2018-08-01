@@ -170,7 +170,7 @@ class MainWindow(QtGui.QWidget):
                 sort = item['flag']
                 break
 
-        self.search = SearchThread(self)
+        self.search = SearchThread(self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.uid, major, minor, status,
@@ -195,7 +195,7 @@ class MainWindow(QtGui.QWidget):
         if text == '':
             return
 
-        self.search = SearchByThread(self)
+        self.search = SearchByThread(self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.uid, by, text, self.page_index *
@@ -217,10 +217,10 @@ class MainWindow(QtGui.QWidget):
         else:
             pass
 
-        self.search = SearchCacheThread(self)
+        self.search = SearchCacheThread(self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
-        self.search.start(self.path_cache, self.path_dump, self.db, status,
+        self.search.start(self.db, status,
                           self.page_index * self.page_limit, self.page_limit)
 
         self.model.updateData([])

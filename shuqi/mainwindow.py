@@ -326,11 +326,12 @@ class MainWindow(QtGui.QWidget):
                 progress_total = item['progress_total']
                 progress_index = item['progress_index']
                 if progress_total > 0:
-                    item['progress'] = "%d/%d" % (progress_index + 1, progress_total)
+                    item[
+                        'progress'] = "%d/%d" % (progress_index + 1, progress_total)
 
-            if 'status_number' in item:
-                status_number = item['status_number']
-                if status_number == 1 and progress_total > 0 and progress_total == (progress_index + 1):
+            if 'status' in item:
+                status = item['status']
+                if status == 1 and progress_total > 0 and progress_total == (progress_index + 1):
                     item['state'] = BookState.Success
 
             if 'site' not in item:
@@ -493,11 +494,25 @@ class MainWindow(QtGui.QWidget):
         if row == -1:
             return False
 
-        bid = self.model.getId(row)
         source = self.model.getSources(row)
+        if source is None:
+            return False
+
+        item = self.model.getItem(row)
+        if item is None:
+            return False
+
         self.model.setState(row, BookState.Dumping)
-        dump.start(row, self.path_dump, self.path_cache, bid,
+
+        dump.start(row, self.path_dump, self.path_cache, item['id'],
                    self.uid, source['site'], source['site_name'])
+
+        if self.db.exists(item['id']):
+            self.db.update_time(item['id'])
+        else:
+            self.db.insert({'bid': item['id'], 'name': item['name'],
+                            'author': item['author'], 'status': item['status']})
+
         return True
 
     def __set_selected_site(self, bid, site):
@@ -517,7 +532,9 @@ class MainWindow(QtGui.QWidget):
                 if os.path.exists(filename):
                     cache = MemoryCache(filename)
                     self.__set_selected_site(cache.bid, cache.site)
-                    if self.db.insert({'bookid': cache.bid, 'name': cache.name,
+                    if self.db.exists(cache.bid):
+                        continue
+                    if self.db.insert({'bid': cache.bid, 'name': cache.name,
                                        'author': cache.author, 'status': cache.status}):
                         total += 1
             except Exception, e:

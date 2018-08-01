@@ -104,9 +104,9 @@ class SearchThread(QtCore.QThread):
                 listdata = []
                 for item in json['data']:
                     listdata.append({'id': item['id'],
-                                     'title': item['name'],
+                                     'name': item['name'],
                                      'author': item['author'],
-                                     'status': scapi.get_status(str(item['status']))})
+                                     'status': item['status']})
                 self.__emit_signal_search(json['total'], listdata)
                 code = 0
             else:
@@ -161,9 +161,9 @@ class SearchByThread(QtCore.QThread):
                 listdata = []
                 for item in json['data']:
                     listdata.append({'id': item['id'],
-                                     'title': item['name'],
+                                     'name': item['name'],
                                      'author': item['author'],
-                                     'status': scapi.get_status(str(item['status']))})
+                                     'status': item['status']})
                 self.__emit_signal_search(json['total'], listdata)
                 code = 0
             else:
@@ -220,12 +220,11 @@ class SearchCacheThread(QtCore.QThread):
                 (progress_total, progress_index) = get_progress(
                     self.__path_dump, row[1], row[2], site_name)
                 listdata.append({'id': row[0],
-                                 'title': row[1],
+                                 'name': row[1],
                                  'author': row[2],
-                                 'status': scapi.get_status(str(row[3])),
+                                 'status': row[3],
                                  'sources': sources,
                                  'site': site_name,
-                                 'status_number': row[3],
                                  'progress_total': progress_total,
                                  'progress_index': progress_index})
             self.__emit_signal_search(total, listdata)
@@ -429,7 +428,6 @@ class DumpThread(QtCore.QThread):
         total = len(json['data']['chapters'])
         if total > 0:
 
-            logging.info(str(json))
             if newjson:
                 cache.write(json)
 

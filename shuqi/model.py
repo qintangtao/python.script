@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 from PyQt4 import QtGui, QtCore
 from enum import Enum, IntEnum
+import scapi
 
 
 class BookState(Enum):
@@ -12,7 +13,7 @@ class BookState(Enum):
 
 
 class TableColumn(IntEnum):
-    title = 0
+    name = 0
     author = 1
     status = 2
     site = 3
@@ -38,11 +39,21 @@ class BookTableModel(QtCore.QAbstractTableModel):
             self.beginResetModel()
             self.endResetModel()
 
+    def getItem(self, row):
+        if row >= 0 and row < self.rowCount():
+            return self.__listdata[row]
+        return None
+
     def setLog(self, row, text):
         self.setData2(row, TableColumn.log, text)
 
     def setStatus(self, row, text):
         self.setData2(row, TableColumn.status, text)
+
+    def getStatus(self, row):
+        if row >= 0 and row < self.rowCount():
+            return self.__listdata[row]['status']
+        return 0
 
     def setProgress(self, row, text):
         self.setData2(row, TableColumn.progress, text)
@@ -123,7 +134,7 @@ class BookTableModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                if section == TableColumn.title:
+                if section == TableColumn.name:
                     return u'名称'
                 if section == TableColumn.author:
                     return u'作者'
@@ -149,14 +160,14 @@ class BookTableModel(QtCore.QAbstractTableModel):
                 if self.__listdata[index.row()]['state'] == BookState.Failure:
                     return QtGui.QColor(QtCore.Qt.red)
             elif role == QtCore.Qt.DisplayRole:
-                if index.column() == TableColumn.title:
-                    return self.__listdata[index.row()]['title']
+                if index.column() == TableColumn.name:
+                    return self.__listdata[index.row()]['name']
                 if index.column() == TableColumn.author:
                     return self.__listdata[index.row()]['author']
                 if index.column() == TableColumn.site:
                     return self.__listdata[index.row()]['site']
                 if index.column() == TableColumn.status:
-                    return self.__listdata[index.row()]['status']
+                    return scapi.get_status(str(self.__listdata[index.row()]['status']))
                 if index.column() == TableColumn.progress:
                     return self.__listdata[index.row()]['progress']
                 if index.column() == TableColumn.log:
@@ -172,8 +183,8 @@ class BookTableModel(QtCore.QAbstractTableModel):
             return False
         if role != QtCore.Qt.EditRole:
             return False
-        if index.column() == TableColumn.title:
-            self.__listdata[index.row()]['title'] = value
+        if index.column() == TableColumn.name:
+            self.__listdata[index.row()]['name'] = value
         elif index.column() == TableColumn.author:
             self.__listdata[index.row()]['author'] = value
         elif index.column() == TableColumn.site:

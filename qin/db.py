@@ -14,7 +14,7 @@ class DbSqlite3(object):
 
     def _open(self, database):
         try:
-            self._conn = sqlite3.connect(database)
+            self._conn = sqlite3.connect(database, check_same_thread=False)
         except Exception, e:
             logging.error(str(e))
             self._conn = None

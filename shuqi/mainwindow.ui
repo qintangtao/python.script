@@ -80,7 +80,7 @@ border: 1 solid #D8D8D8;
          </size>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_type">
          <attribute name="title">

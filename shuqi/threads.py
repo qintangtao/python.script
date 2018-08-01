@@ -205,11 +205,11 @@ class SearchCacheThread(QtCore.QThread):
     def run(self):
         code = 1
         total = self.__db.count(self.__status)
-        cursor = self.__db.query(self.__status, self.__start, self.__limit)
-        if cursor is not None:
+        listquery = self.__db.query(self.__status, self.__start, self.__limit)
+        if listquery is not None:
             listdata = []
-            for row in cursor:
-                sources = get_sources(self.__path_cache, row[0])
+            for row in listquery:
+                sources = get_sources(self.__path_cache, row['id'])
                 site_name = ''
                 if sources is not None:
                     for item in sources:
@@ -217,12 +217,11 @@ class SearchCacheThread(QtCore.QThread):
                             site_name = item['site_name']
                         if item['selected'] == 1:
                             site_name = item['site_name']
-                (progress_total, progress_index) = get_progress(
-                    self.__path_dump, row[1], row[2], site_name)
-                listdata.append({'id': row[0],
-                                 'name': row[1],
-                                 'author': row[2],
-                                 'status': row[3],
+                (progress_total, progress_index) = get_progress(self.__path_dump, row['name'], row['author'], site_name)
+                listdata.append({'id': row['id'],
+                                 'name': row['name'],
+                                 'author': row['author'],
+                                 'status': row['status'],
                                  'sources': sources,
                                  'site': site_name,
                                  'progress_total': progress_total,

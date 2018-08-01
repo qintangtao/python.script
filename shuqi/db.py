@@ -18,10 +18,20 @@ class DbShuqi:
         return self._db._executeDML('UPDATE BOOK SET time=datetime(\'now\',\'localtime\') WHERE bid=\'%s\'' % bid)
 
     def query(self, status, start, limit):
+        cursor = None
         if status == -1:
-            return self._db._executeDQL('SELECT bid, name, author, status from BOOK ORDER BY time DESC LIMIT %d, %d' % (start, limit))
+            cursor = self._db._executeDQL(
+                'SELECT bid, name, author, status from BOOK ORDER BY time DESC LIMIT %d, %d' % (start, limit))
         else:
-            return self._db._executeDQL('SELECT bid, name, author, status from BOOK WHERE status=%d ORDER BY time DESC LIMIT %d, %d' % (status, start, limit))
+            cursor = self._db._executeDQL(
+                'SELECT bid, name, author, status from BOOK WHERE status=%d ORDER BY time DESC LIMIT %d, %d' % (status, start, limit))
+        if cursor is None:
+            return None
+        listdata = []
+        for row in cursor:
+            listdata.append({'id': row[0], 'name': row[1],
+                             'author': row[2], 'status': row[3]})
+        return listdata
 
     def exists(self, bid):
         cursor = self._db._executeDQL(

@@ -422,6 +422,8 @@ class DumpThread(QtCore.QThread):
 
             cache_chapter = MemoryCache(
                 os.path.join(path_chapter, 'chapter.json'))
+            cache_chapter.site = site
+            cache_chapter.site_name = site_name
             cache_chapter.total = total
             cache_chapter.index = 0
             cache_chapter.chapters = []

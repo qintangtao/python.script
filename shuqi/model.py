@@ -74,9 +74,10 @@ class BookTableModel(QtCore.QAbstractTableModel):
         if row >= 0 and row < self.rowCount():
             site_name = self.data2(row, TableColumn.site)
             sources = self.__listdata[row]['sources']
-            for item in sources:
-                if site_name == item['site_name']:
-                    return item
+            if sources is not None:
+                for item in sources:
+                    if site_name == item['site_name']:
+                        return item
         return None
 
     def getId(self, row):

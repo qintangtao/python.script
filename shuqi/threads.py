@@ -10,49 +10,65 @@ from qin import utils
 from qin.cache import MemoryCache
 
 
-class SearchCacheThread(QtCore.QThread):
+def set_selected_site(path, bid, value):
+    path = os.path.join(path, 'settings')
+    if not os.path.exists(path):
+        os.makedirs(path)
+    path = os.path.join(path, bid)
+    cache = SettingsCache(path)
+    cache.site = value
 
-    signal_search = QtCore.pyqtSignal(int, list)
-    signal_finished = QtCore.pyqtSignal(int)
 
-    def __init__(self, parent=None):
-        super(SearchCacheThread, self).__init__(parent)
-        self.__exit = False
+def get_selected_site(path, bid):
+    try:
+        path = os.path.join(path, 'settings', bid)
+        if os.path.exists(path):
+            cache = SettingsCache(path)
+            return cache.site
+    except Exception, e:
+        logging.error(str(e))
+    return None
 
-    def start(self, db, status, start, limit):
-        self.__db = db
-        self.__status = status
-        self.__start = start
-        self.__limit = limit
-        self.__exit = False
-        super(SearchCacheThread, self).start()
 
-    def stop(self):
-        self.__exit = True
-        # self.wait()
+def get_sources(path, bid):
+    root_path = path
+    path = os.path.join(root_path, 'sources', bid)
+    if not os.path.exists(path):
+        return None
 
-    def run(self):
-        code = 1
-        total = self.__db.count(self.__status)
-        cursor = self.__db.query(self.__status, self.__start, self.__limit)
-        if cursor is not None:
-            listdata = []
-            for row in cursor:
-                listdata.append({'id': row[0],
-                                 'title': row[1],
-                                 'author': row[2],
-                                 'status': scapi.get_status(str(row[3]))})
-            self.__emit_signal_search(total, listdata)
-            code = 0
-        if self.__exit:
-            code = 2
-        self.__emit_signal_finished(code)
+    cache = SourcesCache(path)
+    json = cache.read()
+    if json is None:
+        return None
 
-    def __emit_signal_search(self, total, search):
-        self.signal_search.emit(total, search)
+    if json['errno'] != 0:
+        return None
 
-    def __emit_signal_finished(self, code):
-        self.signal_finished.emit(code)
+    selected_site = get_selected_site(root_path, bid)
+    sources = []
+    for item in json['sources']:
+        selected = 0
+        if selected_site is not None and selected_site == item['site']:
+            selected = 1
+        sources.append({'site_name': item['site_name'], 'site': item[
+                       'site'], 'selected': selected})
+    return sources
+
+
+def get_progress(path, name, author, site_name):
+    path = os.path.join(path, "%s-%s" %
+                        (name.replace(':', '_'), author), site_name, 'chapter.json')
+    if not os.path.exists(path):
+        return (0, 0)
+    cache = MemoryCache(path)
+    total = 0
+    index = 0
+    try:
+        total = cache.total
+        index = cache.index
+    except Exception:
+        pass
+    return (total, index)
 
 
 class SearchThread(QtCore.QThread):
@@ -163,6 +179,67 @@ class SearchByThread(QtCore.QThread):
         self.signal_finished.emit(code)
 
 
+class SearchCacheThread(QtCore.QThread):
+
+    signal_search = QtCore.pyqtSignal(int, list)
+    signal_finished = QtCore.pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        super(SearchCacheThread, self).__init__(parent)
+        self.__exit = False
+
+    def start(self, path_cache, path_dump, db, status, start, limit):
+        self.__path_cache = path_cache
+        self.__path_dump = path_dump
+        self.__db = db
+        self.__status = status
+        self.__start = start
+        self.__limit = limit
+        self.__exit = False
+        super(SearchCacheThread, self).start()
+
+    def stop(self):
+        self.__exit = True
+        # self.wait()
+
+    def run(self):
+        code = 1
+        total = self.__db.count(self.__status)
+        cursor = self.__db.query(self.__status, self.__start, self.__limit)
+        if cursor is not None:
+            listdata = []
+            for row in cursor:
+                sources = get_sources(self.__path_cache, row[0])
+                site_name = ''
+                if sources is not None:
+                    for item in sources:
+                        if site_name == '':
+                            site_name = item['site_name']
+                        if item['selected'] == 1:
+                            site_name = item['site_name']
+                (progress_total, progress_index) = get_progress(self.__path_dump, row[1], row[2], site_name)
+                listdata.append({'id': row[0],
+                                 'title': row[1],
+                                 'author': row[2],
+                                 'status': scapi.get_status(str(row[3])),
+                                 'sources': sources,
+                                 'site': site_name,
+                                 'status_number': row[3],
+                                 'progress_total': progress_total,
+                                 'progress_index': progress_index})
+            self.__emit_signal_search(total, listdata)
+            code = 0
+        if self.__exit:
+            code = 2
+        self.__emit_signal_finished(code)
+
+    def __emit_signal_search(self, total, search):
+        self.signal_search.emit(total, search)
+
+    def __emit_signal_finished(self, code):
+        self.signal_finished.emit(code)
+
+
 class SourcesThread(QtCore.QThread):
 
     signal_sources = QtCore.pyqtSignal(int, list)
@@ -202,14 +279,12 @@ class SourcesThread(QtCore.QThread):
             if json['errno'] == 0:
                 if newjson:
                     cache.write(json)
-                selected_site = self.__get_selected_site()
-                # print 'selected_site', selected_site
+                selected_site = get_selected_site(self.__path, self.__bid)
                 sources = []
                 for item in json['sources']:
                     selected = 0
                     if selected_site is not None and selected_site == item['site']:
                         selected = 1
-                    # print selected_site, item['site'], selected
                     sources.append(
                         {'site_name': item['site_name'], 'site': item['site'], 'selected': selected})
                 self.__emit_signal_sources(sources)
@@ -219,19 +294,6 @@ class SourcesThread(QtCore.QThread):
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
-
-    def __get_selected_site(self):
-        try:
-            path_cache = os.path.join(self.__path, 'settings')
-            if not os.path.exists(path_cache):
-                os.makedirs(path_cache)
-            path_cache = os.path.join(path_cache, self.__bid)
-            cache = SettingsCache(path_cache)
-            if os.path.exists(path_cache):
-                return cache.site
-        except Exception, e:
-            logging.error(str(e))
-        return None
 
     def __emit_signal_sources(self, sources):
         self.signal_sources.emit(self.__index, sources)
@@ -269,7 +331,7 @@ class DumpThread(QtCore.QThread):
         self.__emit_signal_log('start')
         self.__is_overdue = utils.is_overdue(1565322209000)
         code = 1
-        self.__set_selected_site(self.__site)
+        set_selected_site(self.__path_cache, self.__bid, self.__site)
         for x in xrange(1, 3):
             if self.__exit:
                 break
@@ -284,14 +346,6 @@ class DumpThread(QtCore.QThread):
         if self.__exit:
             code = 2
         self.__emit_signal_finished(code)
-
-    def __set_selected_site(self, value):
-        path_cache = os.path.join(self.__path_cache, 'settings')
-        if not os.path.exists(path_cache):
-            os.makedirs(path_cache)
-        path_cache = os.path.join(path_cache, self.__bid)
-        cache = SettingsCache(path_cache)
-        cache.site = value
 
     def __dump_chapter_html(self, path, bid, uid, site, site_name):
         json = None

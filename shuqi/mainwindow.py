@@ -220,8 +220,8 @@ class MainWindow(QtGui.QWidget):
         self.search = SearchCacheThread(self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
-        self.search.start(self.db, status, self.page_index *
-                          self.page_limit, self.page_limit)
+        self.search.start(self.path_cache, self.path_dump, self.db, status,
+                          self.page_index * self.page_limit, self.page_limit)
 
         self.model.updateData([])
         self.__enabledComboBox(False)
@@ -319,11 +319,30 @@ class MainWindow(QtGui.QWidget):
         self.page_total = total / \
             self.page_limit if total % self.page_limit == 0 else total / self.page_limit + 1
         for item in listdata:
-            item['site'] = ''
-            item['sources'] = []
-            item['progress'] = ''
-            item['log'] = ''
-            item['state'] = BookState.Free
+            progress_total = 0
+            progress_index = 0
+
+            if 'progress_total' in item and 'progress_index' in item:
+                progress_total = item['progress_total']
+                progress_index = item['progress_index']
+                if progress_total > 0:
+                    item['progress'] = "%d/%d" % (progress_index + 1, progress_total)
+
+            if 'status_number' in item:
+                status_number = item['status_number']
+                if status_number == 1 and progress_total > 0 and progress_total == (progress_index + 1):
+                    item['state'] = BookState.Success
+
+            if 'site' not in item:
+                item['site'] = ''
+            if 'sources' not in item:
+                item['sources'] = []
+            if 'progress' not in item:
+                item['progress'] = ''
+            if 'log' not in item:
+                item['log'] = ''
+            if 'state' not in item:
+                item['state'] = BookState.Free
         self.model.updateData(listdata)
 
     def onSignalSearchFinished(self, code):
@@ -331,7 +350,18 @@ class MainWindow(QtGui.QWidget):
             self.ui.lineEdit_page_index.setText(str(self.page_index+1))
             self.ui.lineEdit_page_total.setText(str(self.page_total))
             self.__enabledPageButton()
-            self.__enabledButton(True, start=False, stop=False)
+
+            rowIndex = 0
+            rowCount = self.model.rowCount()
+            while rowCount > rowIndex:
+                source = self.model.getSources(rowIndex)
+                if source is None:
+                    break
+                rowIndex += 1
+            if rowIndex < rowCount:
+                self.__enabledButton(True, start=False, stop=False)
+            else:
+                self.__enabledButton(True, stop=False)
         else:
             self.__enabledButton(False, refresh=True)
             self.model.updateData([])
@@ -351,18 +381,26 @@ class MainWindow(QtGui.QWidget):
             self.ui.pushButton_sources.setEnabled(False)
 
     def onSourcesClicked(self):
-        self.rowSources = 0
-        if self.model.rowCount() > self.rowSources:
-            self.model.setLog(self.rowSources, u'请求书源...')
+        rowIndex = 0
+        rowCount = self.model.rowCount()
+        while rowCount > rowIndex:
+            source = self.model.getSources(rowIndex)
+            if source is None:
+                break
+            rowIndex += 1
+        if rowIndex < rowCount:
+            self.model.setLog(rowIndex, u'请求书源...')
             self.sources = SourcesThread(self)
             self.sources.signal_sources.connect(self.onSignalSources)
             self.sources.signal_finished.connect(self.onSignalSourcesFinished)
-            self.model.setState(self.rowSources, BookState.Dumping)
-            self.sources.start(self.rowSources, self.path_cache, self.model.getId(
-                self.rowSources), self.uid)
+            self.model.setState(rowIndex, BookState.Dumping)
+            self.sources.start(rowIndex, self.path_cache,
+                               self.model.getId(rowIndex), self.uid)
             self.__enabledComboBox(False)
             self.__enabledPageButton(False)
             self.__enabledButton(False)
+        else:
+            self.__enabledButton(True, stop=False)
 
     def onSignalSources(self, index, sources):
         self.model.setSources(index, sources)
@@ -379,12 +417,18 @@ class MainWindow(QtGui.QWidget):
             self.model.setState(index, BookState.Free)
 
         if code != 2:
-            self.rowSources = self.rowSources + 1
-            if self.model.rowCount() > self.rowSources:
-                self.model.setLog(self.rowSources, u'请求书源...')
-                self.model.setState(self.rowSources, BookState.Dumping)
-                self.sources.start(self.rowSources, self.path_cache, self.model.getId(
-                    self.rowSources), self.uid)
+            rowIndex = 0
+            rowCount = self.model.rowCount()
+            while rowCount > rowIndex:
+                source = self.model.getSources(rowIndex)
+                if source is None:
+                    break
+                rowIndex += 1
+            if rowIndex < rowCount:
+                self.model.setLog(rowIndex, u'请求书源...')
+                self.model.setState(rowIndex, BookState.Dumping)
+                self.sources.start(rowIndex, self.path_cache,
+                                   self.model.getId(rowIndex), self.uid)
             else:
                 self.__enabledComboBox(True)
                 self.__enabledPageButton()
@@ -483,3 +527,4 @@ class MainWindow(QtGui.QWidget):
 
     def onTabCurrentChanged(self, index):
         self.page_index = 0
+        self.page_total = 0

@@ -60,7 +60,7 @@ class Ui_MainWindow(object):
         self.groupBox_settings.setMaximumSize(QtCore.QSize(16777215, 100))
         self.groupBox_settings.setObjectName(_fromUtf8("groupBox_settings"))
         self.horizontalLayout = QtGui.QHBoxLayout(self.groupBox_settings)
-        self.horizontalLayout.setMargin(9)
+        self.horizontalLayout.setContentsMargins(9, 3, 9, 9)
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.tabWidget = QtGui.QTabWidget(self.groupBox_settings)
@@ -132,6 +132,7 @@ class Ui_MainWindow(object):
         self.radioButton_tags.setObjectName(_fromUtf8("radioButton_tags"))
         self.horizontalLayout_5.addWidget(self.radioButton_tags)
         self.lineEdit_search = QtGui.QLineEdit(self.tab_search)
+        self.lineEdit_search.setMinimumSize(QtCore.QSize(0, 30))
         self.lineEdit_search.setObjectName(_fromUtf8("lineEdit_search"))
         self.horizontalLayout_5.addWidget(self.lineEdit_search)
         self.tabWidget.addTab(self.tab_search, _fromUtf8(""))
@@ -221,7 +222,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.groupBox_dump)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

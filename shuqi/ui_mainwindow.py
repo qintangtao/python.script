@@ -106,6 +106,16 @@ class Ui_MainWindow(object):
         self.comboBox_sort = QtGui.QComboBox(self.tab_type)
         self.comboBox_sort.setObjectName(_fromUtf8("comboBox_sort"))
         self.horizontalLayout_4.addWidget(self.comboBox_sort)
+        self.horizontalLayout_4.setStretch(0, 1)
+        self.horizontalLayout_4.setStretch(1, 3)
+        self.horizontalLayout_4.setStretch(2, 1)
+        self.horizontalLayout_4.setStretch(3, 3)
+        self.horizontalLayout_4.setStretch(4, 1)
+        self.horizontalLayout_4.setStretch(5, 3)
+        self.horizontalLayout_4.setStretch(6, 1)
+        self.horizontalLayout_4.setStretch(7, 3)
+        self.horizontalLayout_4.setStretch(8, 1)
+        self.horizontalLayout_4.setStretch(9, 3)
         self.tabWidget.addTab(self.tab_type, _fromUtf8(""))
         self.tab_search = QtGui.QWidget()
         self.tab_search.setObjectName(_fromUtf8("tab_search"))
@@ -211,7 +221,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.groupBox_dump)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

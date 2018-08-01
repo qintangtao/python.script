@@ -10,7 +10,7 @@ from threads import SearchThread, SearchByThread, SearchCacheThread, SourcesThre
 from model import BookState, BookTableModel
 from delegate import BookItemDelegate
 from qin import utils
-from dbshuqi import DbShuqi
+from db import DbShuqi
 from qin.cache import MemoryCache
 from cache import SettingsCache
 
@@ -54,6 +54,8 @@ class MainWindow(QtGui.QWidget):
             'activated(QString)'), self.onComboBoxGenderActivated)
         self.connect(self.ui.comboBox_major, QtCore.SIGNAL(
             'activated(QString)'), self.onComboBoxMajorActivated)
+        self.connect(self.ui.tabWidget, QtCore.SIGNAL(
+            'currentChanged(int)'), self.onTabCurrentChanged)
         self.ui.pushButton_sync.clicked.connect(self.onSyncClicked)
         self.ui.lineEdit_page_index.returnPressed.connect(
             self.onPageIndexReturnPressed)
@@ -332,6 +334,7 @@ class MainWindow(QtGui.QWidget):
             self.__enabledButton(True, start=False, stop=False)
         else:
             self.__enabledButton(False, refresh=True)
+            self.model.updateData([])
         self.__enabledComboBox(True)
 
     def onRemoveClicked(self):
@@ -477,3 +480,6 @@ class MainWindow(QtGui.QWidget):
                 print str(e)
         self.ui.label_cache_msg.setText(u'同步%s条数据' % total)
         self.ui.pushButton_sync.setEnabled(True)
+
+    def onTabCurrentChanged(self, index):
+        self.page_index = 0

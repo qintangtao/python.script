@@ -442,7 +442,7 @@ class DumpThread(QtCore.QThread):
                 filename = os.path.join(path_chapter, "%s.html" % index)
                 if not os.path.exists(filename):
                     rett = False
-                    for i in xrange(0, 1):
+                    for i in xrange(0, 3):
                         if self.__exit:
                             break
                         content = None

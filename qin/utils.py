@@ -103,7 +103,7 @@ def request_get(url, params=None, **kwargs):
         else:
             r.raise_for_status()
     except Exception, e:
-        logging.error(str(e))
+        logging.debug(str(e))
     return None
 
 
@@ -116,7 +116,7 @@ def request_post(url, data, **kwargs):
         else:
             r.raise_for_status()
     except Exception, e:
-        logging.error(str(e))
+        logging.debug(str(e))
     return None
 
 

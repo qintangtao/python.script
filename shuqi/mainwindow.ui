@@ -80,7 +80,7 @@ border: 1 solid #D8D8D8;
          </size>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab_type">
          <attribute name="title">
@@ -211,27 +211,29 @@ border: 1 solid #D8D8D8;
          <attribute name="title">
           <string>缓存</string>
          </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0,0,0,0,0">
+          <property name="spacing">
+           <number>9</number>
+          </property>
           <item>
-           <widget class="QRadioButton" name="radioButton_status_all">
+           <widget class="QLabel" name="label_cache_status">
             <property name="text">
-             <string>全部</string>
+             <string>状态</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_status_unfinished">
+           <widget class="QComboBox" name="comboBox_cache_status"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_cache_download">
             <property name="text">
-             <string>连载</string>
+             <string>下载</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_status_finished">
-            <property name="text">
-             <string>完结</string>
-            </property>
-           </widget>
+           <widget class="QComboBox" name="comboBox_cache_download"/>
           </item>
           <item>
            <widget class="QLabel" name="label_cache_msg">

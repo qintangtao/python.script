@@ -86,10 +86,19 @@ class MainWindow(QtGui.QWidget):
         self.ui.tableView.horizontalHeader().setSelectionMode(
             QtGui.QAbstractItemView.NoSelection)
         self.ui.radioButton_name.setChecked(True)
-        self.ui.radioButton_status_all.setChecked(True)
         self.__init_gender()
         self.__init_status_sort()
         self.__init_dump()
+        self.__init_cache()
+
+    def __init_cache(self):
+        status_list = scapi.get_status_list()
+        for item in status_list:
+            self.ui.comboBox_cache_status.addItem(item['name'])
+
+        download_list = data.get_download_list()
+        for item in download_list:
+            self.ui.comboBox_cache_download.addItem(item['name'])
 
     def __init_dump(self):
         self.listdump = []
@@ -207,20 +216,28 @@ class MainWindow(QtGui.QWidget):
         self.__enabledButton(False)
 
     def __request_searchcache(self):
-        status = -1
-        if self.ui.radioButton_status_all.isChecked():
-            status = -1
-        elif self.ui.radioButton_status_unfinished.isChecked():
-            status = 0
-        elif self.ui.radioButton_status_finished.isChecked():
-            status = 1
-        else:
-            pass
+
+        status = ''
+        status_name = qstr2str(self.ui.comboBox_cache_status.currentText())
+        status_list = scapi.get_status_list()
+        for item in status_list:
+            if item['name'] == status_name:
+                status = item['flag']
+                break
+        if status == '':
+            status = '-1'
+
+        download = -1
+        download_name = qstr2str(self.ui.comboBox_cache_download.currentText())
+        download_list = data.get_download_list()
+        for item in download_list:
+            if item['name'] == download_name:
+                download = item['flag']
 
         self.search = SearchCacheThread(self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
-        self.search.start(self.db, status,
+        self.search.start(self.db, int(status), download,
                           self.page_index * self.page_limit, self.page_limit)
 
         self.model.updateData([])

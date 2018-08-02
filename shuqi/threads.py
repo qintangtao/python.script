@@ -111,15 +111,6 @@ class BaseThread(QtCore.QThread):
                              'site': site_name,
                              'progress_total': progress_total,
                              'progress_index': progress_index})
-        '''
-        listdata = []
-        for item in list:
-            listdata.append({'id': item['id'],
-                             'name': item['name'],
-                             'author': item['author'],
-                             'status': item['status']})
-        '''
-
         return listdata
 
     def _emit_signal_search(self, total, search):
@@ -193,9 +184,10 @@ class SearchByThread(BaseThread):
 
 class SearchCacheThread(BaseThread):
 
-    def start(self, db, status, start, limit):
+    def start(self, db, status, download, start, limit):
         self.__db = db
         self.__status = status
+        self.__download = download
         self.__start = start
         self.__limit = limit
         super(SearchCacheThread, self).start()
@@ -206,6 +198,25 @@ class SearchCacheThread(BaseThread):
         listquery = self.__db.query(self.__status, self.__start, self.__limit)
         if listquery is not None:
             listdata = self._parse_data(listquery)
+            if self.__status != 0 and self.__download > -1:
+                i = 0
+                while i < len(listdata):
+                    item = listdata[i]
+                    if item['status'] == 1:
+                        progress_total = item['progress_total']
+                        progress_index = item['progress_index']
+                        if progress_index > 0 and progress_total > 0 and progress_total == (progress_index + 1):
+                            if self.__download == 0:
+                                listdata.remove(item)
+                                continue
+                            if self.__download == 1:
+                                i += 1
+                                continue
+                    if self.__download == 1:
+                        listdata.remove(item)
+                        continue
+                    i += 1
+
             self._emit_signal_search(total, listdata)
             code = 0
         if self._exit:

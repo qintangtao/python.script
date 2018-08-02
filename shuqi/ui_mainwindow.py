@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(704, 484)
+        MainWindow.resize(777, 528)
         MainWindow.setStyleSheet(_fromUtf8("QGroupBox{\n"
 "font-weight:bold;\n"
 "}\n"
@@ -226,7 +226,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.groupBox_dump)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

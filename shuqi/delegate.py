@@ -15,11 +15,13 @@ class BookItemDelegate(QtGui.QStyledItemDelegate):
         QtGui.QStyledItemDelegate.paint(self, painter, opt, index)
 
     def createEditor(self, parent, option, index):
-        editor = QtGui.QComboBox(parent)
         sources = index.model().data(index, QtCore.Qt.EditRole)
-        for item in sources:
-            editor.addItem(item['site_name'])
-        return editor
+        if sources is not None:
+            editor = QtGui.QComboBox(parent)
+            for item in sources:
+                editor.addItem(item['site_name'])
+            return editor
+        return None
 
     def setEditorData(self, editor, index):
         site_name = index.model().data(index, QtCore.Qt.DisplayRole)

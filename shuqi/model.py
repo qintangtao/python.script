@@ -103,8 +103,8 @@ class BookTableModel(QtCore.QAbstractTableModel):
                 return row
             row += 1
 
-    def getFreeRow(self):
-        for row in xrange(0, self.rowCount()):
+    def getFreeRow(self, start=0):
+        for row in xrange(start, self.rowCount()):
             state = self.__listdata[row]['state']
             if state == BookState.Free:
                 return row
@@ -113,7 +113,8 @@ class BookTableModel(QtCore.QAbstractTableModel):
     def setAllState(self, oldstate, newstate):
         for item in self.__listdata:
             if item['state'] == oldstate:
-                item['state'] = newstate
+                if item['sources'] is not None:
+                    item['state'] = newstate
 
     def setData2(self, row, column, value, role=QtCore.Qt.EditRole):
         index = QtCore.QAbstractTableModel.index(self, row, column)

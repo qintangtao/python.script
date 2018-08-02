@@ -402,21 +402,10 @@ class MainWindow(QtGui.QWidget):
             self.ui.pushButton_sources.setEnabled(False)
 
     def onSourcesClicked(self):
-        rowIndex = 0
-        rowCount = self.model.rowCount()
-        while rowCount > rowIndex:
-            source = self.model.getSources(rowIndex)
-            if source is None:
-                break
-            rowIndex += 1
-        if rowIndex < rowCount:
-            self.model.setLog(rowIndex, u'请求书源...')
-            self.sources = SourcesThread(self)
-            self.sources.signal_sources.connect(self.onSignalSources)
-            self.sources.signal_finished.connect(self.onSignalSourcesFinished)
-            self.model.setState(rowIndex, BookState.Dumping)
-            self.sources.start(rowIndex, self.path_cache,
-                               self.model.getId(rowIndex), self.uid)
+        sources = SourcesThread(self)
+        sources.signal_sources.connect(self.onSignalSources)
+        sources.signal_finished.connect(self.onSignalSourcesFinished)
+        if self.startSourcesThread(sources):
             self.__enabledComboBox(False)
             self.__enabledPageButton(False)
             self.__enabledButton(False)
@@ -438,22 +427,29 @@ class MainWindow(QtGui.QWidget):
             self.model.setState(index, BookState.Free)
 
         if code != 2:
-            rowIndex = 0
-            rowCount = self.model.rowCount()
-            while rowCount > rowIndex:
-                source = self.model.getSources(rowIndex)
-                if source is None:
-                    break
-                rowIndex += 1
-            if rowIndex < rowCount:
-                self.model.setLog(rowIndex, u'请求书源...')
-                self.model.setState(rowIndex, BookState.Dumping)
-                self.sources.start(rowIndex, self.path_cache,
-                                   self.model.getId(rowIndex), self.uid)
-            else:
+            if self.startSourcesThread(self.sender()) is False:
                 self.__enabledComboBox(True)
                 self.__enabledPageButton()
                 self.__enabledButton(True, stop=False)
+
+    def startSourcesThread(self, thread):
+        rowIndex = 0
+        rowCount = self.model.rowCount()
+        while rowCount > rowIndex:
+            source = self.model.getSources(rowIndex)
+            if source is None:
+                state = self.model.getState(rowIndex)
+                if state == BookState.Free:
+                    print rowIndex
+                    break
+            rowIndex += 1
+        if rowIndex < rowCount:
+            self.model.setLog(rowIndex, u'请求书源...')
+            self.model.setState(rowIndex, BookState.Dumping)
+            thread.start(rowIndex, self.path_cache,
+                         self.model.getId(rowIndex), self.uid)
+            return True
+        return False
 
     def onStartClicked(self):
         if self.model.rowCount() > 0:
@@ -499,7 +495,6 @@ class MainWindow(QtGui.QWidget):
 
         if code != 2:
             self.startDumpThread(self.sender())
-
         else:
             for dump in self.listdump:
                 if dump.isRunning():
@@ -510,13 +505,19 @@ class MainWindow(QtGui.QWidget):
             self.__enabledButton(True, stop=False)
 
     def startDumpThread(self, dump):
-        row = self.model.getFreeRow()
-        if row == -1:
-            return False
+        row = -1
+        source = None
+        while True:
+            row = self.model.getFreeRow(row+1)
+            if row == -1:
+                return False
 
-        source = self.model.getSources(row)
+            source = self.model.getSources(row)
+            if source is not None:
+                break
+
         if source is None:
-            return False
+            return -1
 
         item = self.model.getItem(row)
         if item is None:

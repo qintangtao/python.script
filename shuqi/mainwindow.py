@@ -71,7 +71,7 @@ class MainWindow(QtGui.QWidget):
         self.ui.lineEdit_page_total.setText(str(self.page_total))
         self.ui.lineEdit_page_total.setEnabled(False)
         self.__enabledPageButton(False)
-        self.__enabledButton(False, refresh=True)
+        self.__enabledButton(False, refresh=True, sync=True)
         self.model = BookTableModel(self)
         self.ui.tableView.setModel(self.model)
         self.delegate = BookItemDelegate(self)
@@ -243,6 +243,7 @@ class MainWindow(QtGui.QWidget):
         self.ui.comboBox_minor.setEnabled(enabled)
         self.ui.comboBox_status.setEnabled(enabled)
         self.ui.comboBox_sort.setEnabled(enabled)
+        self.ui.tabWidget.setEnabled(enabled)
 
     def __enabledPageButton(self, enabled=True):
         if enabled:
@@ -267,6 +268,8 @@ class MainWindow(QtGui.QWidget):
             args['start'] if 'start' in args else enabled)
         self.ui.pushButton_stop.setEnabled(
             args['stop'] if 'stop' in args else enabled)
+        self.ui.pushButton_sync.setEnabled(
+            args['sync'] if 'sync' in args else enabled)
 
     def showEvent(self, event):
         super(MainWindow, self).showEvent(event)

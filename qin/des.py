@@ -52,13 +52,13 @@ class desReader(des):
 
 
 if __name__ == "__main__":
-    pc = desReader('readBook', 'readBook', DES.MODE_ECB)
-    e = pc.encrypt('{"type":"玄幻","page":"2","gender":"male"}')
+    des = desReader('readBook', 'readBook', DES.MODE_ECB)
+    e = des.encrypt('{"type":"玄幻","page":"2","gender":"male"}')
     print e
     e = urllib.quote(e)
     print e
     e = urllib.unquote(e)
     print e
-    d = pc.decrypt(e)
+    d = des.decrypt(e)
     print d
     utils.save_file_w(os.path.join(os.getcwd(), 'a.json'), d)

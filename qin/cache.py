@@ -3,7 +3,7 @@
 import os
 import json
 import logging
-from prpcrypt import prpcrypt
+import aes
 import utils
 
 
@@ -41,7 +41,7 @@ class PrpcryptCache(JsonCache):
 
     def __init__(self, path, key, iv):
         super(PrpcryptCache, self).__init__(path)
-        self._prpcrypt = prpcrypt(key, iv)
+        self._prpcrypt = aes.aes(key, iv)
 
     def _encode(self, dict):
         return self._prpcrypt.encrypt(super(PrpcryptCache, self)._encode(dict))
@@ -76,7 +76,7 @@ class MemoryPrpcryptCache(JsonCache):
 
     def __init__(self, path, key, iv):
         super(MemoryPrpcryptCache, self).__init__(path)
-        self._prpcrypt = prpcrypt(key, iv)
+        self._prpcrypt = aes.aes(key, iv)
         data = super(MemoryPrpcryptCache, self).read()
         self.__dict__['__data__'] = {} if data is None else data
 

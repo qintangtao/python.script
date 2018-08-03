@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 import os
 import logging
-import scapi
+import api
 import time
 from PyQt4 import QtCore
 from cache import SourcesCache, ChaptersCache, SettingsCache
@@ -134,8 +134,8 @@ class SearchThread(BaseThread):
 
     def run(self):
         code = 1
-        json = scapi.request_Search(self.__uid, self.__major, self.__minor,
-                                    self.__status, self.__sort, self.__start, self.__limit)
+        json = api.request_Search(self.__uid, self.__major, self.__minor,
+                                  self.__status, self.__sort, self.__start, self.__limit)
         if json is not None:
             if json['errno'] == 0:
                 listdata = self._parse_data(json['data'])
@@ -162,13 +162,13 @@ class SearchByThread(BaseThread):
         code = 1
         json = None
         if self.__by == 'name':
-            json = scapi.request_SearchByName(
+            json = api.request_SearchByName(
                 self.__uid, self.__text, self.__start, self.__limit)
         elif self.__by == 'author':
-            json = scapi.request_SearchByAuthor(
+            json = api.request_SearchByAuthor(
                 self.__uid, self.__text, self.__start, self.__limit)
         elif self.__by == 'tags':
-            json = scapi.request_SearchByTags(
+            json = api.request_SearchByTags(
                 self.__uid, self.__text, self.__start, self.__limit)
         if json is not None:
             if json['errno'] == 0:
@@ -257,7 +257,7 @@ class SourcesThread(QtCore.QThread):
         if os.path.exists(path_cache):
             json = cache.read()
         if json is None:
-            json = scapi.request_ChangeSource(self.__bid, self.__uid)
+            json = api.request_ChangeSource(self.__bid, self.__uid)
             newjson = True
         if json is not None:
             if json['errno'] == 0:
@@ -345,7 +345,7 @@ class DumpThread(QtCore.QThread):
                 if json['data']['book']['site'] != site:
                     json = None
         if json is None:
-            json = scapi.request_WapChapterList(bid, uid, site)
+            json = api.request_WapChapterList(bid, uid, site)
             newjson = True
         if self.__exit:
             return False

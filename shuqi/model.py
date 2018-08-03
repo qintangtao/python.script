@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 from PyQt4 import QtGui, QtCore
 from enum import Enum, IntEnum
-import scapi
+import api
 
 
 class BookState(Enum):
@@ -168,7 +168,7 @@ class BookTableModel(QtCore.QAbstractTableModel):
                 if index.column() == TableColumn.site:
                     return self.__listdata[index.row()]['site']
                 if index.column() == TableColumn.status:
-                    return scapi.get_status(str(self.__listdata[index.row()]['status']))
+                    return api.get_status(str(self.__listdata[index.row()]['status']))
                 if index.column() == TableColumn.progress:
                     return self.__listdata[index.row()]['progress']
                 if index.column() == TableColumn.log:

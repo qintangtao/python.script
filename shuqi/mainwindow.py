@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 import os
 import res
-import scapi
+import api
 import data
 from PyQt4 import QtGui, QtCore
 from ui_mainwindow import Ui_MainWindow
@@ -92,7 +92,7 @@ class MainWindow(QtGui.QWidget):
         self.__init_cache()
 
     def __init_cache(self):
-        status_list = scapi.get_status_list()
+        status_list = api.get_status_list()
         for item in status_list:
             self.ui.comboBox_cache_status.addItem(item['name'])
 
@@ -110,11 +110,11 @@ class MainWindow(QtGui.QWidget):
             self.listdump.append(dump)
 
     def __init_status_sort(self):
-        status_list = scapi.get_status_list()
+        status_list = api.get_status_list()
         for item in status_list:
             self.ui.comboBox_status.addItem(item['name'])
 
-        sort_list = scapi.get_sort_list()
+        sort_list = api.get_sort_list()
         for item in sort_list:
             self.ui.comboBox_sort.addItem(item['name'])
 
@@ -165,7 +165,7 @@ class MainWindow(QtGui.QWidget):
 
         status = ''
         status_name = qstr2str(self.ui.comboBox_status.currentText())
-        status_list = scapi.get_status_list()
+        status_list = api.get_status_list()
         for item in status_list:
             if item['name'] == status_name:
                 status = item['flag']
@@ -173,7 +173,7 @@ class MainWindow(QtGui.QWidget):
 
         sort = ''
         sort_name = qstr2str(self.ui.comboBox_sort.currentText())
-        sort_list = scapi.get_sort_list()
+        sort_list = api.get_sort_list()
         for item in sort_list:
             if item['name'] == sort_name:
                 sort = item['flag']
@@ -219,7 +219,7 @@ class MainWindow(QtGui.QWidget):
 
         status = ''
         status_name = qstr2str(self.ui.comboBox_cache_status.currentText())
-        status_list = scapi.get_status_list()
+        status_list = api.get_status_list()
         for item in status_list:
             if item['name'] == status_name:
                 status = item['flag']

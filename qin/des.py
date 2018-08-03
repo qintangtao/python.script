@@ -3,8 +3,6 @@
 from Crypto.Cipher import DES
 from binascii import b2a_hex, a2b_hex
 import base64
-import utils
-import os
 import urllib
 
 
@@ -52,13 +50,12 @@ class desReader(des):
 
 
 if __name__ == "__main__":
-    des = desReader('readBook', 'readBook', DES.MODE_ECB)
-    e = des.encrypt('{"type":"玄幻","page":"2","gender":"male"}')
+    dr = desReader('readBook', 'readBook', DES.MODE_ECB)
+    e = dr.encrypt('{"type":"玄幻","page":"2","gender":"male"}')
     print e
     e = urllib.quote(e)
     print e
     e = urllib.unquote(e)
     print e
-    d = des.decrypt(e)
+    d = dr.decrypt(e)
     print d
-    utils.save_file_w(os.path.join(os.getcwd(), 'a.json'), d)

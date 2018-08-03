@@ -53,6 +53,10 @@ class Ui_MainWindow(object):
 "}\n"
 "QTableView{\n"
 "border: 1 solid #D8D8D8;\n"
+"}\n"
+"QComboBox QAbstractItemView::item{\n"
+"height:26px;\n"
+"min-height:26px;\n"
 "}"))
         self.verticalLayout = QtGui.QVBoxLayout(MainWindow)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
@@ -76,6 +80,7 @@ class Ui_MainWindow(object):
         self.label_gender.setObjectName(_fromUtf8("label_gender"))
         self.horizontalLayout_4.addWidget(self.label_gender)
         self.comboBox_gender = QtGui.QComboBox(self.tab_type)
+        self.comboBox_gender.setStyleSheet(_fromUtf8(""))
         self.comboBox_gender.setObjectName(_fromUtf8("comboBox_gender"))
         self.horizontalLayout_4.addWidget(self.comboBox_gender)
         self.label_major = QtGui.QLabel(self.tab_type)

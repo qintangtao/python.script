@@ -18,8 +18,10 @@ class BookItemDelegate(QtGui.QStyledItemDelegate):
         sources = index.model().data(index, QtCore.Qt.EditRole)
         if sources is not None:
             editor = QtGui.QComboBox(parent)
+            listView = QtGui.QListView(editor)
             for item in sources:
                 editor.addItem(item['site_name'])
+            editor.setView(listView)
             return editor
         return None
 

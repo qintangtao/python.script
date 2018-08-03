@@ -400,7 +400,6 @@ class DumpThread(QtCore.QThread):
                     findSite = True
                 else:
                     if not os.path.exists(os.path.join(path_book, item['site_name'])):
-                        print 'remove', item['site_name']
                         cache_book.sources.remove(item)
             if findSite is False:
                 cache_book.sources.append(

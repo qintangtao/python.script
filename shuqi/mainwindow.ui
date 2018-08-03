@@ -41,6 +41,10 @@ height:0px;
 }
 QTableView{
 border: 1 solid #D8D8D8;
+}
+QComboBox QAbstractItemView::item{
+height:26px;
+min-height:26px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -110,7 +114,11 @@ border: 1 solid #D8D8D8;
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox_gender"/>
+           <widget class="QComboBox" name="comboBox_gender">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_major">

@@ -92,13 +92,17 @@ class MainWindow(QtGui.QWidget):
         self.__init_cache()
 
     def __init_cache(self):
+        listView = QtGui.QListView(self.ui.comboBox_cache_status)
         status_list = api.get_status_list()
         for item in status_list:
             self.ui.comboBox_cache_status.addItem(item['name'])
+        self.ui.comboBox_cache_status.setView(listView)
 
+        listView = QtGui.QListView(self.ui.comboBox_cache_download)
         download_list = data.get_download_list()
         for item in download_list:
             self.ui.comboBox_cache_download.addItem(item['name'])
+        self.ui.comboBox_cache_download.setView(listView)
 
     def __init_dump(self):
         self.listdump = []
@@ -110,31 +114,40 @@ class MainWindow(QtGui.QWidget):
             self.listdump.append(dump)
 
     def __init_status_sort(self):
+        listView = QtGui.QListView(self.ui.comboBox_status)
         status_list = api.get_status_list()
         for item in status_list:
             self.ui.comboBox_status.addItem(item['name'])
+        self.ui.comboBox_status.setView(listView)
 
+        listView = QtGui.QListView(self.ui.comboBox_sort)
         sort_list = api.get_sort_list()
         for item in sort_list:
             self.ui.comboBox_sort.addItem(item['name'])
+        self.ui.comboBox_sort.setView(listView)
 
     def __init_gender(self):
         self.ui.comboBox_gender.clear()
+        listView = QtGui.QListView(self.ui.comboBox_gender)
         for gender_item in data.book:
             self.ui.comboBox_gender.addItem(gender_item['name'])
+        self.ui.comboBox_gender.setView(listView)
         self.__init_major(self.ui.comboBox_gender.currentText())
 
     def __init_major(self, gender):
         self.ui.comboBox_major.clear()
+        listView = QtGui.QListView(self.ui.comboBox_major)
         for gender_item in data.book:
             if gender_item['name'] == gender:
                 for major_item in gender_item['major']:
                     self.ui.comboBox_major.addItem(major_item['name'])
                 break
+        self.ui.comboBox_major.setView(listView)
         self.__init_minor(gender, self.ui.comboBox_major.currentText())
 
     def __init_minor(self, gender, major):
         self.ui.comboBox_minor.clear()
+        listView = QtGui.QListView(self.ui.comboBox_minor)
         for gender_item in data.book:
             if gender_item['name'] == gender:
                 for major_item in gender_item['major']:
@@ -144,6 +157,7 @@ class MainWindow(QtGui.QWidget):
                             self.ui.comboBox_minor.addItem(minor)
                         break
                 break
+        self.ui.comboBox_minor.setView(listView)
 
     def __set_table_column_width(self):
         self.ui.tableView.setColumnWidth(
@@ -440,7 +454,6 @@ class MainWindow(QtGui.QWidget):
             if source is None:
                 state = self.model.getState(rowIndex)
                 if state == BookState.Free:
-                    print rowIndex
                     break
             rowIndex += 1
         if rowIndex < rowCount:

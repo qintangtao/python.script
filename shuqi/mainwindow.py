@@ -44,7 +44,7 @@ class MainWindow(QtGui.QWidget):
         self.path_cache = os.path.join(self.path, 'cache')
         if not os.path.exists(self.path_cache):
             os.makedirs(self.path_cache)
-        self.settings = SettingsCache(
+        self.conf = SettingsCache(
             os.path.join(self.path_cache, 'FuckShuqiContq1.conf'))
         self.db = DbShuqi(self.path_cache)
         self.__init_ui()
@@ -100,8 +100,8 @@ class MainWindow(QtGui.QWidget):
         page_size = 0
         task_number = 0
         try:
-            page_size = self.settings.page_size
-            task_number = self.settings.task_number
+            page_size = self.conf.page_size
+            task_number = self.conf.task_number
         except Exception:
             pass
 
@@ -621,8 +621,8 @@ class MainWindow(QtGui.QWidget):
 
     def onPageSizeCurrentIndexChanged(self, text):
         self.page_limit = int(text)
-        self.settings.page_size = int(text)
+        self.conf.page_size = int(text)
 
     def onTaskNumberCurrentIndexChanged(self, text):
         self.__init_dump(int(text))
-        self.settings.task_number = int(text)
+        self.conf.task_number = int(text)

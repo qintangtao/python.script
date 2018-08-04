@@ -33,10 +33,9 @@ class MainWindow(QtGui.QWidget):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.max_dump_count = 3
         self.page_index = 0
         self.page_total = 0
-        self.page_limit = 10
+        self.page_limit = 0
         self.uid = utils.generate_uid()
         self.path = os.getcwd()
         self.path_dump = os.path.join(self.path, 'dump')
@@ -56,6 +55,10 @@ class MainWindow(QtGui.QWidget):
             'activated(QString)'), self.onComboBoxMajorActivated)
         self.connect(self.ui.tabWidget, QtCore.SIGNAL(
             'currentChanged(int)'), self.onTabCurrentChanged)
+        self.connect(self.ui.comboBox_page_size, QtCore.SIGNAL(
+            'currentIndexChanged(QString)'), self.onPageSizeCurrentIndexChanged)
+        self.connect(self.ui.comboBox_task_number, QtCore.SIGNAL(
+            'currentIndexChanged(QString)'), self.onTaskNumberCurrentIndexChanged)
         self.ui.pushButton_sync.clicked.connect(self.onSyncClicked)
         self.ui.lineEdit_page_index.returnPressed.connect(
             self.onPageIndexReturnPressed)
@@ -88,8 +91,19 @@ class MainWindow(QtGui.QWidget):
         self.ui.radioButton_name.setChecked(True)
         self.__init_gender()
         self.__init_status_sort()
-        self.__init_dump()
         self.__init_cache()
+        self.__init_settings()
+
+    def __init_settings(self):
+        listView = QtGui.QListView(self.ui.comboBox_page_size)
+        for x in xrange(10, 31, 5):
+            self.ui.comboBox_page_size.addItem(str(x))
+        self.ui.comboBox_page_size.setView(listView)
+
+        listView = QtGui.QListView(self.ui.comboBox_task_number)
+        for x in xrange(3, 9):
+            self.ui.comboBox_task_number.addItem(str(x))
+        self.ui.comboBox_task_number.setView(listView)
 
     def __init_cache(self):
         listView = QtGui.QListView(self.ui.comboBox_cache_status)
@@ -104,10 +118,13 @@ class MainWindow(QtGui.QWidget):
             self.ui.comboBox_cache_download.addItem(item['name'])
         self.ui.comboBox_cache_download.setView(listView)
 
-    def __init_dump(self):
+    def __init_dump(self, count):
+        if hasattr(self, 'listdump'):
+            for dump in self.listdump:
+                del dump
         self.listdump = []
-        for i in xrange(0, self.max_dump_count):
-            dump = DumpThread()
+        for i in xrange(0, count):
+            dump = DumpThread(self)
             dump.signal_log.connect(self.onSignalLog)
             dump.signal_progress.connect(self.onSignalProgress)
             dump.signal_finished.connect(self.onSignalFinished)
@@ -199,7 +216,6 @@ class MainWindow(QtGui.QWidget):
         self.search.start(self.uid, major, minor, status,
                           sort, self.page_index * self.page_limit, self.page_limit)
 
-        self.model.updateData([])
         self.__enabledComboBox(False)
         self.__enabledPageButton(False)
         self.__enabledButton(False)
@@ -224,7 +240,6 @@ class MainWindow(QtGui.QWidget):
         self.search.start(self.uid, by, text, self.page_index *
                           self.page_limit, self.page_limit)
 
-        self.model.updateData([])
         self.__enabledComboBox(False)
         self.__enabledPageButton(False)
         self.__enabledButton(False)
@@ -254,13 +269,13 @@ class MainWindow(QtGui.QWidget):
         self.search.start(self.db, int(status), download,
                           self.page_index * self.page_limit, self.page_limit)
 
-        self.model.updateData([])
         self.__enabledComboBox(False)
         self.__enabledPageButton(False)
         self.__enabledButton(False)
 
     def __request_books(self):
         currentIndex = self.ui.tabWidget.currentIndex()
+        self.model.updateData([])
         if currentIndex == 0:
             self.__request_search()
         elif currentIndex == 1:
@@ -579,3 +594,11 @@ class MainWindow(QtGui.QWidget):
     def onTabCurrentChanged(self, index):
         self.page_index = 0
         self.page_total = 0
+        self.model.updateData([])
+        self.ui.groupBox_dump.setEnabled(False if index == 3 else True)
+
+    def onPageSizeCurrentIndexChanged(self, text):
+        self.page_limit = int(text)
+
+    def onTaskNumberCurrentIndexChanged(self, text):
+        self.__init_dump(int(text))

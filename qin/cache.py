@@ -37,24 +37,24 @@ class JsonCache(object):
         return None
 
 
-class PrpcryptCache(JsonCache):
+class AESCache(JsonCache):
 
     def __init__(self, path, key, iv):
-        super(PrpcryptCache, self).__init__(path)
-        self._prpcrypt = aes.aes(key, iv)
+        super(AESCache, self).__init__(path)
+        self._aes = aes.aes(key, iv)
 
     def _encode(self, dict):
-        return self._prpcrypt.encrypt(super(PrpcryptCache, self)._encode(dict))
+        return self._aes.encrypt(super(AESCache, self)._encode(dict))
 
     def _decode(self, text):
-        return super(PrpcryptCache, self)._decode(self._prpcrypt.decrypt(text))
+        return super(AESCache, self)._decode(self._aes.decrypt(text))
 
 
-class MemoryCache(JsonCache):
+class ConfCache(JsonCache):
 
     def __init__(self, path):
-        super(MemoryCache, self).__init__(path)
-        data = super(MemoryCache, self).read()
+        super(ConfCache, self).__init__(path)
+        data = super(ConfCache, self).read()
         self.__dict__['__data__'] = {} if data is None else data
 
     def __del__(self):
@@ -72,12 +72,12 @@ class MemoryCache(JsonCache):
         return self.__dict__[name]
 
 
-class MemoryPrpcryptCache(JsonCache):
+class ConfAESCache(JsonCache):
 
     def __init__(self, path, key, iv):
-        super(MemoryPrpcryptCache, self).__init__(path)
-        self._prpcrypt = aes.aes(key, iv)
-        data = super(MemoryPrpcryptCache, self).read()
+        super(ConfAESCache, self).__init__(path)
+        self._aes = aes.aes(key, iv)
+        data = super(ConfAESCache, self).read()
         self.__dict__['__data__'] = {} if data is None else data
 
     def __del__(self):
@@ -95,13 +95,13 @@ class MemoryPrpcryptCache(JsonCache):
         return self.__dict__[name]
 
     def _encode(self, dict):
-        return self._prpcrypt.encrypt(super(MemoryPrpcryptCache, self)._encode(dict))
+        return self._aes.encrypt(super(ConfAESCache, self)._encode(dict))
 
     def _decode(self, text):
-        return super(MemoryPrpcryptCache, self)._decode(self._prpcrypt.decrypt(text))
+        return super(ConfAESCache, self)._decode(self._aes.decrypt(text))
 
 if __name__ == "__main__":
-    c = MemoryCache(os.path.join(os.getcwd(), 'MemoryCache.json'))
+    c = ConfCache(os.path.join(os.getcwd(), 'ConfCache.json'))
     c.abc = 123
     print c.abc
     # print c.aaa

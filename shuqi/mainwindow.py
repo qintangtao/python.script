@@ -11,7 +11,7 @@ from model import BookState, BookTableModel
 from delegate import BookItemDelegate
 from qin import utils
 from db import DbShuqi
-from qin.cache import MemoryCache
+from qin.cache import ConfCache
 from cache import SettingsCache
 
 
@@ -44,6 +44,8 @@ class MainWindow(QtGui.QWidget):
         self.path_cache = os.path.join(self.path, 'cache')
         if not os.path.exists(self.path_cache):
             os.makedirs(self.path_cache)
+        self.settings = SettingsCache(
+            os.path.join(self.path_cache, 'FuckShuqiContq1.conf'))
         self.db = DbShuqi(self.path_cache)
         self.__init_ui()
 
@@ -95,15 +97,35 @@ class MainWindow(QtGui.QWidget):
         self.__init_settings()
 
     def __init_settings(self):
+        page_size = 0
+        task_number = 0
+        try:
+            page_size = self.settings.page_size
+            task_number = self.settings.task_number
+        except Exception:
+            pass
+
+        i = 0
+        currentIndex = 0
         listView = QtGui.QListView(self.ui.comboBox_page_size)
         for x in xrange(10, 31, 5):
             self.ui.comboBox_page_size.addItem(str(x))
+            if page_size == x:
+                currentIndex = i
+            i += 1
         self.ui.comboBox_page_size.setView(listView)
+        self.ui.comboBox_page_size.setCurrentIndex(currentIndex)
 
+        i = 0
+        currentIndex = 0
         listView = QtGui.QListView(self.ui.comboBox_task_number)
         for x in xrange(3, 9):
             self.ui.comboBox_task_number.addItem(str(x))
+            if task_number == x:
+                currentIndex = i
+            i += 1
         self.ui.comboBox_task_number.setView(listView)
+        self.ui.comboBox_task_number.setCurrentIndex(currentIndex)
 
     def __init_cache(self):
         listView = QtGui.QListView(self.ui.comboBox_cache_status)
@@ -579,7 +601,7 @@ class MainWindow(QtGui.QWidget):
                 self.ui.label_cache_msg.setText(dirname.decode('gbk'))
                 filename = os.path.join(self.path_dump, dirname, 'book.json')
                 if os.path.exists(filename):
-                    cache = MemoryCache(filename)
+                    cache = ConfCache(filename)
                     self.__set_selected_site(cache.bid, cache.site)
                     if self.db.exists(cache.bid):
                         continue
@@ -599,6 +621,8 @@ class MainWindow(QtGui.QWidget):
 
     def onPageSizeCurrentIndexChanged(self, text):
         self.page_limit = int(text)
+        self.settings.page_size = int(text)
 
     def onTaskNumberCurrentIndexChanged(self, text):
         self.__init_dump(int(text))
+        self.settings.task_number = int(text)

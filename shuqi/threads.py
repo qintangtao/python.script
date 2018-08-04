@@ -7,7 +7,7 @@ import time
 from PyQt4 import QtCore
 from cache import SourcesCache, ChaptersCache, SettingsCache
 from qin import utils
-from qin.cache import MemoryCache
+from qin.cache import ConfCache
 
 
 def set_selected_site(path, bid, value):
@@ -60,7 +60,7 @@ def get_progress(path, name, author, site_name):
                         (name.replace(':', '_'), author), site_name, 'chapter.json')
     if not os.path.exists(path):
         return (0, 0)
-    cache = MemoryCache(path)
+    cache = ConfCache(path)
     total = 0
     index = 0
     try:
@@ -377,7 +377,7 @@ class DumpThread(QtCore.QThread):
         self.__emit_signal_log('download cover.')
         utils.download_file(path_book, book['cover'])
 
-        cache_book = MemoryCache(os.path.join(path_book, 'book.json'))
+        cache_book = ConfCache(os.path.join(path_book, 'book.json'))
         cache_book.bid = bid
         cache_book.cover = book['cover']
         cache_book.clazz = book['clazz']
@@ -422,7 +422,7 @@ class DumpThread(QtCore.QThread):
                     logging.error(str(e))
                     return False
 
-            cache_chapter = MemoryCache(
+            cache_chapter = ConfCache(
                 os.path.join(path_chapter, 'chapter.json'))
             cache_chapter.site = site
             cache_chapter.site_name = site_name

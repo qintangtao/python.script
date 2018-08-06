@@ -311,6 +311,7 @@ class MainWindow(QtGui.QWidget):
         self.ui.comboBox_minor.setEnabled(enabled)
         self.ui.comboBox_status.setEnabled(enabled)
         self.ui.comboBox_sort.setEnabled(enabled)
+        self.ui.tabWidget_main.setTabEnabled(1, enabled)
         self.ui.tabWidget.setEnabled(enabled)
 
     def __enabledPageButton(self, enabled=True):
@@ -617,7 +618,6 @@ class MainWindow(QtGui.QWidget):
         self.page_index = 0
         self.page_total = 0
         self.model.updateData([])
-        self.ui.groupBox_dump.setEnabled(False if index == 3 else True)
 
     def onPageSizeCurrentIndexChanged(self, text):
         self.page_limit = int(text)

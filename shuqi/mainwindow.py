@@ -604,11 +604,18 @@ class MainWindow(QtGui.QWidget):
                 if os.path.exists(filename):
                     cache = ConfCache(filename)
                     self.__set_selected_site(cache.bid, cache.site)
-                    if self.db.exists_book(cache.bid):
-                        continue
-                    if self.db.insert_book({'bid': cache.bid, 'name': cache.name,
-                                            'author': cache.author, 'status': cache.status}):
-                        total += 1
+                    if not self.db.exists_book(cache.bid):
+                        if self.db.insert_book({'bid': cache.bid, 'name': cache.name,
+                                                'author': cache.author, 'status': cache.status}):
+                            total += 1
+                    filename = os.path.join(
+                        self.path_dump, dirname, cache.site_name, 'chapter.json')
+                    print cache.site_name
+                    print filename
+                    if os.path.exists(filename):
+                        cache_chapter = ConfCache(filename)
+                        self.db.insert_source({'bid': cache.bid, 'site': cache.site, 'site_name': cache.site_name,
+                                               'total': cache_chapter.total, 'idx': cache_chapter.index})
             except Exception, e:
                 print str(e)
         self.ui.label_cache_msg.setText(u'同步%s条数据' % total)

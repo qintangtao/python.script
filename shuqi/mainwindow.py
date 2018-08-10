@@ -579,8 +579,8 @@ class MainWindow(QtGui.QWidget):
         dump.start(row, self.path_dump, self.path_cache, item['id'],
                    self.uid, source['site'], source['site_name'])
 
-        if self.db.exists(item['id']):
-            self.db.update_time(item['id'])
+        if self.db.exists_book(item['id']):
+            self.db.update_book_time(item['id'])
         else:
             self.db.insert({'bid': item['id'], 'name': item['name'],
                             'author': item['author'], 'status': item['status']})
@@ -604,10 +604,10 @@ class MainWindow(QtGui.QWidget):
                 if os.path.exists(filename):
                     cache = ConfCache(filename)
                     self.__set_selected_site(cache.bid, cache.site)
-                    if self.db.exists(cache.bid):
+                    if self.db.exists_book(cache.bid):
                         continue
-                    if self.db.insert({'bid': cache.bid, 'name': cache.name,
-                                       'author': cache.author, 'status': cache.status}):
+                    if self.db.insert_book({'bid': cache.bid, 'name': cache.name,
+                                            'author': cache.author, 'status': cache.status}):
                         total += 1
             except Exception, e:
                 print str(e)

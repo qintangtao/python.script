@@ -10,14 +10,16 @@ class DbShuqi:
         self._db = DbSqlite3(os.path.join(path, 'FuckShuqiContq1.db'))
         self._db._executeDML(
             'CREATE TABLE IF NOT EXISTS BOOK (id INTEGER PRIMARY KEY NOT NULL, bid TEXT NOT NULL UNIQUE, name TEXT NOT NULL, author TEXT NOT NULL, status INTEGER NOT NULL, time DATE DEFAULT (datetime(\'now\',\'localtime\')));')
+        self._db._executeDML(
+            'CREATE TABLE IF NOT EXISTS SOURCE (id INTEGER PRIMARY KEY NOT NULL, bid TEXT NOT NULL, site TEXT NOT NULL, site_name TEXT NOT NULL, total INTEGER DEFAULT 0, idx INTEGER DEFAULT 0);')
 
-    def insert(self, dict):
+    def insert_book(self, dict):
         return self._db._executeDML('INSERT INTO BOOK (bid, name, author, status) values(\'%s\', \'%s\', \'%s\', %d)' % (dict['bid'], dict['name'], dict['author'], dict['status']))
 
-    def update_time(self, bid):
+    def update_book_time(self, bid):
         return self._db._executeDML('UPDATE BOOK SET time=datetime(\'now\',\'localtime\') WHERE bid=\'%s\'' % bid)
 
-    def query(self, status, start, limit):
+    def query_book(self, status, start, limit):
         cursor = None
         if status == -1:
             cursor = self._db._executeDQL(
@@ -33,14 +35,14 @@ class DbShuqi:
                              'author': row[2], 'status': row[3]})
         return listdata
 
-    def exists(self, bid):
+    def exists_book(self, bid):
         cursor = self._db._executeDQL(
             'SELECT * from BOOK WHERE bid=\'%s\'' % bid)
         if cursor is not None and len(cursor.fetchall()) > 0:
             return True
         return False
 
-    def count(self, status):
+    def count_book(self, status):
         cursor = None
         if status == -1:
             cursor = self._db._executeDQL(
@@ -52,11 +54,22 @@ class DbShuqi:
             return len(cursor.fetchall())
         return 0
 
+    def insert_source(self, dict):
+        if self.exists_source(dict):
+            return self.update_source(dict)
+        return self._db._executeDML('INSERT INTO SOURCE (bid, site, site_name, total, idx) values(\'%s\', \'%s\', \'%s\', %d, %d)' % (dict['bid'], dict['site'], dict['site_name'], dict['total'], dict['idx']))
+
+    def update_source(self, dict):
+        return self._db._executeDML('UPDATE SOURCE SET total=%d, idx=%d WHERE bid=\'%s\' and site=\'%s\' and site_name=\'%s\'' % (dict['total'], dict['idx'], dict['bid'], dict['site'], dict['site_name']))
+
+    def exists_source(self, dict):
+        cursor = self._db._executeDQL(
+            'SELECT * from SOURCE WHERE bid=\'%s\' and site=\'%s\' and site_name=\'%s\'' % (dict['bid'], dict['site'], dict['site_name']))
+        if cursor is not None and len(cursor.fetchall()) > 0:
+            return True
+        return False
+
+
 if __name__ == "__main__":
     d = DbShuqi(os.getcwd())
-    # d.insert({'bid': 'bid', 'name': 'name',
-    #         'author': 'author', 'status': 1})
-    cursor = d.query(1, 1, 4)
-    for row in cursor:
-        print row[0]
-    print d.count(1)
+    d.exists_source({'site': 'www.aaa.com'})

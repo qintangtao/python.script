@@ -194,8 +194,8 @@ class SearchCacheThread(BaseThread):
 
     def run(self):
         code = 1
-        total = self.__db.count(self.__status)
-        listquery = self.__db.query(self.__status, self.__start, self.__limit)
+        total = self.__db.count_book(self.__status)
+        listquery = self.__db.query_book(self.__status, self.__start, self.__limit)
         if listquery is not None:
             listdata = self._parse_data(listquery)
             if self.__status != 0 and self.__download > -1:

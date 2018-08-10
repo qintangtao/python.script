@@ -608,10 +608,7 @@ class MainWindow(QtGui.QWidget):
                         if self.db.insert_book({'bid': cache.bid, 'name': cache.name,
                                                 'author': cache.author, 'status': cache.status}):
                             total += 1
-                    filename = os.path.join(
-                        self.path_dump, dirname, cache.site_name, 'chapter.json')
-                    print cache.site_name
-                    print filename
+                    filename = os.path.join(self.path_dump, dirname, cache.site_name.encode('gbk'), 'chapter.json')
                     if os.path.exists(filename):
                         cache_chapter = ConfCache(filename)
                         self.db.insert_source({'bid': cache.bid, 'site': cache.site, 'site_name': cache.site_name,

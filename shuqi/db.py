@@ -54,17 +54,26 @@ class DbShuqi:
             return len(cursor.fetchall())
         return 0
 
+    def query_source(self, dict):
+        cursor = self._db._executeDQL(
+            'SELECT total, idx from SOURCE WHERE bid=\'%s\' and site=\'%s\'' % (dict['bid'], dict['site']))
+        if cursor is None:
+            return None
+        for row in cursor:
+            return {'total': row[0], 'index': row[1]}
+        return None
+
     def insert_source(self, dict):
         if self.exists_source(dict):
             return self.update_source(dict)
         return self._db._executeDML('INSERT INTO SOURCE (bid, site, site_name, total, idx) values(\'%s\', \'%s\', \'%s\', %d, %d)' % (dict['bid'], dict['site'], dict['site_name'], dict['total'], dict['idx']))
 
     def update_source(self, dict):
-        return self._db._executeDML('UPDATE SOURCE SET total=%d, idx=%d WHERE bid=\'%s\' and site=\'%s\' and site_name=\'%s\'' % (dict['total'], dict['idx'], dict['bid'], dict['site'], dict['site_name']))
+        return self._db._executeDML('UPDATE SOURCE SET site_name=\'%s\', total=%d, idx=%d WHERE bid=\'%s\' and site=\'%s\'' % (dict['site_name'], dict['total'], dict['idx'], dict['bid'], dict['site']))
 
     def exists_source(self, dict):
         cursor = self._db._executeDQL(
-            'SELECT * from SOURCE WHERE bid=\'%s\' and site=\'%s\' and site_name=\'%s\'' % (dict['bid'], dict['site'], dict['site_name']))
+            'SELECT * from SOURCE WHERE bid=\'%s\' and site=\'%s\'' % (dict['bid'], dict['site']))
         if cursor is not None and len(cursor.fetchall()) > 0:
             return True
         return False

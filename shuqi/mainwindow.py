@@ -533,6 +533,14 @@ class MainWindow(QtGui.QWidget):
     def onSignalProgress(self, index, total, current):
         self.model.setProgress(index, "%d/%d" % (current+1, total))
 
+    def updateSourceProgress(self, index, total, current):
+        bid = self.model.getId(index)
+        source = self.model.getSources(index)
+        dict_source = {'bid': bid, 'site': source['site'], 'site_name': source[
+            'site_name'], 'total': total, 'idx': current}
+        #print dict_source
+        self.db.insert_source(dict_source)
+
     def onSignalFinished(self, index, code):
         if code == 0:
             self.model.setLog(index, 'Success')
@@ -543,6 +551,11 @@ class MainWindow(QtGui.QWidget):
         else:
             self.model.setLog(index, 'Stop')
             self.model.setState(index, BookState.Free)
+
+        total = self.sender().total
+        current = self.sender().current
+        if total > 0 and current > 0:
+            self.updateSourceProgress(index, total, current)
 
         if code != 2:
             self.startDumpThread(self.sender())
@@ -574,17 +587,24 @@ class MainWindow(QtGui.QWidget):
         if item is None:
             return False
 
+        total = 0
+        current = 0
+        dict_source = self.db.query_source(
+            {'bid': item['id'], 'site': source['site']})
+        if dict_source is not None:
+            total = dict_source['total']
+            current = dict_source['index']
+
         self.model.setState(row, BookState.Dumping)
 
         dump.start(row, self.path_dump, self.path_cache, item['id'],
-                   self.uid, source['site'], source['site_name'])
+                   self.uid, source['site'], source['site_name'], total, current)
 
         if self.db.exists_book(item['id']):
             self.db.update_book_time(item['id'])
         else:
-            self.db.insert({'bid': item['id'], 'name': item['name'],
-                            'author': item['author'], 'status': item['status']})
-
+            self.db.insert_book({'bid': item['id'], 'name': item['name'],
+                                 'author': item['author'], 'status': item['status']})
         return True
 
     def __set_selected_site(self, bid, site):
@@ -608,11 +628,14 @@ class MainWindow(QtGui.QWidget):
                         if self.db.insert_book({'bid': cache.bid, 'name': cache.name,
                                                 'author': cache.author, 'status': cache.status}):
                             total += 1
-                    filename = os.path.join(self.path_dump, dirname, cache.site_name.encode('gbk'), 'chapter.json')
+                    filename = os.path.join(
+                        self.path_dump, dirname, cache.site_name.encode('gbk'), 'chapter.json')
                     if os.path.exists(filename):
                         cache_chapter = ConfCache(filename)
-                        self.db.insert_source({'bid': cache.bid, 'site': cache.site, 'site_name': cache.site_name,
-                                               'total': cache_chapter.total, 'idx': cache_chapter.index})
+                        dict_source = {'bid': cache.bid, 'site': cache.site, 'site_name': cache.site_name,
+                                       'total': cache_chapter.total, 'idx': cache_chapter.index}
+                        if self.db.insert_source(dict_source):
+                            total += 1
             except Exception, e:
                 print str(e)
         self.ui.label_cache_msg.setText(u'同步%s条数据' % total)

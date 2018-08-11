@@ -195,7 +195,8 @@ class SearchCacheThread(BaseThread):
     def run(self):
         code = 1
         total = self.__db.count_book(self.__status)
-        listquery = self.__db.query_book(self.__status, self.__start, self.__limit)
+        listquery = self.__db.query_book(
+            self.__status, self.__start, self.__limit)
         if listquery is not None:
             listdata = self._parse_data(listquery)
             if self.__status != 0 and self.__download > -1:
@@ -296,7 +297,23 @@ class DumpThread(QtCore.QThread):
         super(DumpThread, self).__init__(parent)
         self.__exit = False
 
-    def start(self, index, path, path_cache, bid, uid, site, site_name):
+    @property
+    def total(self):
+        try:
+            return self.__total
+        except Exception, e:
+            print str(e)
+        return 0
+
+    @property
+    def current(self):
+        try:
+            return self.__current
+        except Exception, e:
+            print str(e)
+        return 0
+
+    def start(self, index, path, path_cache, bid, uid, site, site_name, total, current):
         self.__index = index
         self.__path = path
         self.__path_cache = path_cache
@@ -304,6 +321,8 @@ class DumpThread(QtCore.QThread):
         self.__uid = uid
         self.__site = site
         self.__site_name = site_name
+        self.__total = total
+        self.__current = current
         self.__exit = False
         super(DumpThread, self).start()
 
@@ -411,6 +430,8 @@ class DumpThread(QtCore.QThread):
         total = len(json['data']['chapters'])
         if total > 0:
 
+            self.__total = total
+
             if newjson:
                 cache.write(json)
 
@@ -426,20 +447,30 @@ class DumpThread(QtCore.QThread):
                 os.path.join(path_chapter, 'chapter.json'))
             cache_chapter.site = site
             cache_chapter.site_name = site_name
-            cache_chapter.total = total
-            cache_chapter.index = 0
-            cache_chapter.chapters = []
+            cache_chapter.total = self.__total
+            try:
+                cache_chapter.chapters
+            except Exception, e:
+                cache_chapter.chapters = []
+            try:
+                if cache_chapter.index > self.__current:
+                    self.__current = cache_chapter.index
+            except Exception, e:
+                cache_chapter.index = 0
 
-            self.__emit_signal_progress(
-                cache_chapter.total, cache_chapter.index)
+            self.__emit_signal_progress(self.__total, self.__current)
+
             for item in json['data']['chapters']:
                 if self.__exit:
                     break
-
-                self.__emit_signal_log(item['title'])
                 index = item['cidx']
-                filename = os.path.join(path_chapter, "%s.html" % index)
-                if not os.path.exists(filename):
+                #print self.__total, self.__current, index
+                if index > self.__current:
+                    self.__emit_signal_log(item['title'])
+
+                    filename = os.path.join(
+                        path_chapter, "%s.html" % index)
+
                     rett = False
                     for i in xrange(0, 3):
                         if self.__exit:
@@ -464,10 +495,11 @@ class DumpThread(QtCore.QThread):
                     if rett is False:
                         return False
 
-                cache_chapter.index = index
-                cache_chapter.chapters.append(
-                    {'cidx': index, 'title': item['title']})
-                self.__emit_signal_progress(total, index)
+                    self.__current = index
+                    cache_chapter.index = self.__current
+                    cache_chapter.chapters.append(
+                        {'cidx': self.__current, 'title': item['title']})
+                    self.__emit_signal_progress(self.__total, self.__current)
         else:
             logging.error('chapters is empty')
             logging.debug('%s(%s)' % (site_name, site))

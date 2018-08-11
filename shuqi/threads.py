@@ -55,7 +55,7 @@ def get_sources(path, bid):
     return sources
 
 
-def get_progress(path, name, author, site_name):
+def get_progress_by_cache(path, name, author, site_name):
     path = os.path.join(path, "%s-%s" %
                         (name.replace(':', '_'), author), site_name, 'chapter.json')
     if not os.path.exists(path):
@@ -71,13 +71,21 @@ def get_progress(path, name, author, site_name):
     return (total, index)
 
 
+def get_progress_by_db(db, bid, site):
+    listdata = db.query_source({'bid': bid, 'site': site})
+    if listdata is None or len(listdata) == 0:
+        return (0, 0)
+    return (listdata[0]['total'], listdata[0]['index'])
+
+
 class BaseThread(QtCore.QThread):
 
     signal_search = QtCore.pyqtSignal(int, list)
     signal_finished = QtCore.pyqtSignal(int)
 
-    def __init__(self, path_cache, path_dump, parent=None):
+    def __init__(self, db, path_cache, path_dump, parent=None):
         super(BaseThread, self).__init__(parent)
+        self._db = db
         self._path_cache = path_cache
         self._path_dump = path_dump
         self._exit = False
@@ -93,16 +101,25 @@ class BaseThread(QtCore.QThread):
     def _parse_data(self, list):
         listdata = []
         for row in list:
+
             sources = get_sources(self._path_cache, row['id'])
+            site = ''
             site_name = ''
             if sources is not None:
                 for item in sources:
                     if site_name == '':
+                        site = item['site']
                         site_name = item['site_name']
                     if item['selected'] == 1:
+                        site = item['site']
                         site_name = item['site_name']
-            (progress_total, progress_index) = get_progress(
-                self._path_dump, row['name'], row['author'], site_name)
+
+            (progress_total, progress_index) = get_progress_by_db(
+                self._db, row['id'], site)
+            #print progress_total, progress_index
+            if progress_total == 0 and progress_index == 0:
+                (progress_total, progress_index) = get_progress_by_cache(
+                    self._path_dump, row['name'], row['author'], site_name)
             listdata.append({'id': row['id'],
                              'name': row['name'],
                              'author': row['author'],
@@ -464,7 +481,7 @@ class DumpThread(QtCore.QThread):
                 if self.__exit:
                     break
                 index = item['cidx']
-                #print self.__total, self.__current, index
+                # print self.__total, self.__current, index
                 if index > self.__current:
                     self.__emit_signal_log(item['title'])
 

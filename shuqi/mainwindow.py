@@ -232,7 +232,7 @@ class MainWindow(QtGui.QWidget):
                 sort = item['flag']
                 break
 
-        self.search = SearchThread(self.path_cache, self.path_dump, self)
+        self.search = SearchThread(self.db, self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.uid, major, minor, status,
@@ -256,7 +256,7 @@ class MainWindow(QtGui.QWidget):
         if text == '':
             return
 
-        self.search = SearchByThread(self.path_cache, self.path_dump, self)
+        self.search = SearchByThread(self.db, self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.uid, by, text, self.page_index *
@@ -285,7 +285,7 @@ class MainWindow(QtGui.QWidget):
             if item['name'] == download_name:
                 download = item['flag']
 
-        self.search = SearchCacheThread(self.path_cache, self.path_dump, self)
+        self.search = SearchCacheThread(self.db, self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.db, int(status), download,
@@ -589,11 +589,11 @@ class MainWindow(QtGui.QWidget):
 
         total = 0
         current = 0
-        dict_source = self.db.query_source(
+        listdata = self.db.query_source(
             {'bid': item['id'], 'site': source['site']})
-        if dict_source is not None:
-            total = dict_source['total']
-            current = dict_source['index']
+        if listdata is not None and len(listdata) > 0:
+            total = listdata[0]['total']
+            current = listdata[0]['index']
 
         self.model.setState(row, BookState.Dumping)
 

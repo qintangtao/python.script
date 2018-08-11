@@ -59,9 +59,10 @@ class DbShuqi:
             'SELECT total, idx from SOURCE WHERE bid=\'%s\' and site=\'%s\'' % (dict['bid'], dict['site']))
         if cursor is None:
             return None
+        listdata = []
         for row in cursor:
-            return {'total': row[0], 'index': row[1]}
-        return None
+            listdata.append({'total': row[0], 'index': row[1]})
+        return listdata
 
     def insert_source(self, dict):
         if self.exists_source(dict):

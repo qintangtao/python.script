@@ -1,1 +1,1 @@
-python ExtractLog.py qiyi.log byqin %1
+python ExtractLog.py %*

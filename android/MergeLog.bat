@@ -1,0 +1,1 @@
+python ExtractLog.py %1

@@ -1,0 +1,1 @@
+python ExtractLog.py qiyi.log byqin %1

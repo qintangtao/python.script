@@ -1,1 +1,1 @@
-python ExtractLog.py %1
+python MergeLog.py %1

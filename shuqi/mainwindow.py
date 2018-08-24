@@ -35,7 +35,7 @@ class MainWindow(QtGui.QWidget):
         self.ui.setupUi(self)
         self.page_index = 0
         self.page_total = 0
-        self.page_limit = 0
+        self.page_limit = 10
         self.uid = utils.generate_uid()
         self.path = os.getcwd()
         self.path_dump = os.path.join(self.path, 'dump')
@@ -57,10 +57,12 @@ class MainWindow(QtGui.QWidget):
             'activated(QString)'), self.onComboBoxMajorActivated)
         self.connect(self.ui.tabWidget, QtCore.SIGNAL(
             'currentChanged(int)'), self.onTabCurrentChanged)
+        '''
         self.connect(self.ui.comboBox_page_size, QtCore.SIGNAL(
             'currentIndexChanged(QString)'), self.onPageSizeCurrentIndexChanged)
         self.connect(self.ui.comboBox_task_number, QtCore.SIGNAL(
             'currentIndexChanged(QString)'), self.onTaskNumberCurrentIndexChanged)
+        '''
         self.ui.pushButton_sync.clicked.connect(self.onSyncClicked)
         self.ui.lineEdit_page_index.returnPressed.connect(
             self.onPageIndexReturnPressed)
@@ -95,8 +97,11 @@ class MainWindow(QtGui.QWidget):
         self.__init_status_sort()
         self.__init_cache()
         self.__init_settings()
+        self.__init_dump(3)
 
     def __init_settings(self):
+        pass
+        '''
         page_size = 0
         task_number = 0
         try:
@@ -126,6 +131,7 @@ class MainWindow(QtGui.QWidget):
             i += 1
         self.ui.comboBox_task_number.setView(listView)
         self.ui.comboBox_task_number.setCurrentIndex(currentIndex)
+        '''
 
     def __init_cache(self):
         listView = QtGui.QListView(self.ui.comboBox_cache_status)
@@ -141,9 +147,11 @@ class MainWindow(QtGui.QWidget):
         self.ui.comboBox_cache_download.setView(listView)
 
     def __init_dump(self, count):
+        '''
         if hasattr(self, 'listdump'):
             for dump in self.listdump:
                 del dump
+        '''
         self.listdump = []
         for i in xrange(0, count):
             dump = DumpThread(self)

@@ -302,7 +302,7 @@ class Ui_MainWindow(object):
         self.pushButton_sources.setText(_translate("MainWindow", "书源", None))
         self.pushButton_start.setText(_translate("MainWindow", "开始", None))
         self.pushButton_stop.setText(_translate("MainWindow", "停止", None))
-        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_search), _translate("MainWindow", "搜索", None))
+        self.tabWidget_main.setTabText(self.tabWidget_main.indexOf(self.tab_search), _translate("MainWindow", "任务", None))
         self.groupBox.setTitle(_translate("MainWindow", "转存", None))
         self.checkBox_auto_switch_page_after_completed.setText(_translate("MainWindow", "完成后自动换页", None))
         self.checkBox_auto_switch_source_after_failure.setText(_translate("MainWindow", "失败后自动换源", None))

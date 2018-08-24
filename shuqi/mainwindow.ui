@@ -61,7 +61,7 @@ min-height:26px;
      </property>
      <widget class="QWidget" name="tab_search">
       <attribute name="title">
-       <string>搜索</string>
+       <string>任务</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>

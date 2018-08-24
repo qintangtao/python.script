@@ -647,7 +647,7 @@ class MainWindow(QtGui.QWidget):
             return -3
 
         total = 0
-        current = 0
+        current = -1
         listdata = self.db.query_source(
             {'bid': item['id'], 'site': source['site']})
         if listdata is not None and len(listdata) > 0:

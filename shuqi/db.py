@@ -9,12 +9,16 @@ class DbShuqi:
     def __init__(self, path):
         self._db = DbSqlite3(os.path.join(path, 'FuckShuqiContq1.db'))
         self._db._executeDML(
-            'CREATE TABLE IF NOT EXISTS BOOK (id INTEGER PRIMARY KEY NOT NULL, bid TEXT NOT NULL UNIQUE, name TEXT NOT NULL, author TEXT NOT NULL, status INTEGER NOT NULL, time DATE DEFAULT (datetime(\'now\',\'localtime\')));')
+            'CREATE TABLE IF NOT EXISTS BOOK (id INTEGER PRIMARY KEY NOT NULL, bid TEXT NOT NULL UNIQUE, name TEXT NOT NULL, author TEXT NOT NULL, status INTEGER NOT NULL, time DATE DEFAULT (datetime(\'now\',\'localtime\')), tags TEXT NOT NULL);')
+        cursor = self._db._executeDQL("SELECT * FROM {}".format('BOOK'))
+        col_name_list = [tuple[0] for tuple in cursor.description]
+        if 'tags' not in col_name_list:
+            self._db._executeDML('ALTER TABLE BOOK ADD COLUMN tags TEXT NOT NULL DEFAULT \'\';')
         self._db._executeDML(
             'CREATE TABLE IF NOT EXISTS SOURCE (id INTEGER PRIMARY KEY NOT NULL, bid TEXT NOT NULL, site TEXT NOT NULL, site_name TEXT NOT NULL, total INTEGER DEFAULT 0, idx INTEGER DEFAULT 0);')
 
     def insert_book(self, dict):
-        return self._db._executeDML('INSERT INTO BOOK (bid, name, author, status) values(\'%s\', \'%s\', \'%s\', %d)' % (dict['bid'], dict['name'], dict['author'], dict['status']))
+        return self._db._executeDML('INSERT INTO BOOK (bid, name, author, status, tags) values(\'%s\', \'%s\', \'%s\', %d, \'%s\')' % (dict['bid'], dict['name'], dict['author'], dict['status'], ''))
 
     def update_book_time(self, bid):
         return self._db._executeDML('UPDATE BOOK SET time=datetime(\'now\',\'localtime\') WHERE bid=\'%s\'' % bid)

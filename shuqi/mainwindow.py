@@ -36,6 +36,7 @@ class MainWindow(QtGui.QWidget):
         self.page_index = 0
         self.page_total = 0
         self.page_limit = 10
+        self.auto_request = False
         self.uid = utils.generate_uid()
         self.path = os.getcwd()
         self.path_dump = os.path.join(self.path, 'dump')
@@ -63,6 +64,10 @@ class MainWindow(QtGui.QWidget):
         self.connect(self.ui.comboBox_task_number, QtCore.SIGNAL(
             'currentIndexChanged(QString)'), self.onTaskNumberCurrentIndexChanged)
         '''
+        self.connect(self.ui.checkBox_auto_switch_page_after_completed, QtCore.SIGNAL(
+            'toggled(bool)'), self.onAutoSwitchPageToggled)
+        self.connect(self.ui.checkBox_auto_switch_source_after_failure, QtCore.SIGNAL(
+            'toggled(bool)'), self.onAutoSwitchSourceToggled)
         self.ui.pushButton_sync.clicked.connect(self.onSyncClicked)
         self.ui.lineEdit_page_index.returnPressed.connect(
             self.onPageIndexReturnPressed)
@@ -100,7 +105,20 @@ class MainWindow(QtGui.QWidget):
         self.__init_dump(3)
 
     def __init_settings(self):
-        pass
+        try:
+            self.conf.auto_switch_page
+        except Exception:
+            self.conf.auto_switch_page = False
+        try:
+            self.conf.auto_switch_source
+        except Exception:
+            self.conf.auto_switch_source = False
+
+        self.ui.checkBox_auto_switch_page_after_completed.setChecked(
+            self.conf.auto_switch_page)
+        self.ui.checkBox_auto_switch_source_after_failure.setChecked(
+            self.conf.auto_switch_source)
+
         '''
         page_size = 0
         task_number = 0
@@ -240,7 +258,8 @@ class MainWindow(QtGui.QWidget):
                 sort = item['flag']
                 break
 
-        self.search = SearchThread(self.db, self.path_cache, self.path_dump, self)
+        self.search = SearchThread(
+            self.db, self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.uid, major, minor, status,
@@ -264,7 +283,8 @@ class MainWindow(QtGui.QWidget):
         if text == '':
             return
 
-        self.search = SearchByThread(self.db, self.path_cache, self.path_dump, self)
+        self.search = SearchByThread(
+            self.db, self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.uid, by, text, self.page_index *
@@ -293,7 +313,8 @@ class MainWindow(QtGui.QWidget):
             if item['name'] == download_name:
                 download = item['flag']
 
-        self.search = SearchCacheThread(self.db, self.path_cache, self.path_dump, self)
+        self.search = SearchCacheThread(
+            self.db, self.path_cache, self.path_dump, self)
         self.search.signal_search.connect(self.onSignalSearch)
         self.search.signal_finished.connect(self.onSignalSearchFinished)
         self.search.start(self.db, int(status), download,
@@ -312,6 +333,21 @@ class MainWindow(QtGui.QWidget):
             self.__request_searchby()
         elif currentIndex == 2:
             self.__request_searchcache()
+
+    def __request_before_page(self, auto_request):
+        self.auto_request = auto_request
+        self.page_index -= 1
+        self.__request_books()
+
+    def __request_after_page(self, auto_request):
+        self.auto_request = auto_request
+        self.page_index += 1
+        self.__request_books()
+
+    def __request_refresh(self, auto_request):
+        self.auto_request = auto_request
+        self.__set_table_column_width()
+        self.__request_books()
 
     def __enabledComboBox(self, enabled):
         self.ui.comboBox_gender.setEnabled(enabled)
@@ -374,26 +410,24 @@ class MainWindow(QtGui.QWidget):
             try:
                 page_index = int(self.ui.lineEdit_page_index.text())
                 if page_index < 1 or page_index > self.page_total:
-                    self.ui.lineEdit_page_index.setText(str(self.page_index+1))
+                    self.ui.lineEdit_page_index.setText(
+                        str(self.page_index + 1))
                 else:
                     self.page_index = page_index - 1
                     self.__request_books()
             except Exception:
-                self.ui.lineEdit_page_index.setText(str(self.page_index+1))
+                self.ui.lineEdit_page_index.setText(str(self.page_index + 1))
         else:
             self.ui.lineEdit_page_index.setText(str(self.page_index))
 
     def onBeforePageClicked(self):
-        self.page_index -= 1
-        self.__request_books()
+        self.__request_before_page(False)
 
     def onAfterPageClicked(self):
-        self.page_index += 1
-        self.__request_books()
+        self.__request_after_page(False)
 
     def onRefreshClicked(self):
-        self.__set_table_column_width()
-        self.__request_books()
+        self.__request_refresh(False)
 
     def onSignalSearch(self, total, listdata):
         self.page_total = total / \
@@ -428,10 +462,11 @@ class MainWindow(QtGui.QWidget):
 
     def onSignalSearchFinished(self, code):
         if code == 0:
-            self.ui.lineEdit_page_index.setText(str(self.page_index+1))
+            self.ui.lineEdit_page_index.setText(str(self.page_index + 1))
             self.ui.lineEdit_page_total.setText(str(self.page_total))
             self.__enabledPageButton()
 
+            # check sources is empty.
             rowIndex = 0
             rowCount = self.model.rowCount()
             while rowCount > rowIndex:
@@ -441,8 +476,14 @@ class MainWindow(QtGui.QWidget):
                 rowIndex += 1
             if rowIndex < rowCount:
                 self.__enabledButton(True, start=False, stop=False)
+                if self.auto_request and self.conf.auto_switch_page:
+                    self.onSourcesClicked()
+                    return
             else:
                 self.__enabledButton(True, stop=False)
+                if self.auto_request and self.conf.auto_switch_page:
+                    self.onStartClicked()
+                    return
         else:
             self.__enabledButton(False, refresh=True)
             self.model.updateData([])
@@ -491,6 +532,8 @@ class MainWindow(QtGui.QWidget):
                 self.__enabledComboBox(True)
                 self.__enabledPageButton()
                 self.__enabledButton(True, stop=False)
+                if self.auto_request and self.conf.auto_switch_page:
+                    self.onStartClicked()
 
     def startSourcesThread(self, thread):
         rowIndex = 0
@@ -539,14 +582,14 @@ class MainWindow(QtGui.QWidget):
         self.model.setLog(index, log)
 
     def onSignalProgress(self, index, total, current):
-        self.model.setProgress(index, "%d/%d" % (current+1, total))
+        self.model.setProgress(index, "%d/%d" % (current + 1, total))
 
     def updateSourceProgress(self, index, total, current):
         bid = self.model.getId(index)
         source = self.model.getSources(index)
         dict_source = {'bid': bid, 'site': source['site'], 'site_name': source[
             'site_name'], 'total': total, 'idx': current}
-        #print dict_source
+        # print dict_source
         self.db.insert_source(dict_source)
 
     def onSignalFinished(self, index, code):
@@ -566,34 +609,42 @@ class MainWindow(QtGui.QWidget):
             self.updateSourceProgress(index, total, current)
 
         if code != 2:
-            self.startDumpThread(self.sender())
+            ret = self.startDumpThread(self.sender())
+            if self.conf.auto_switch_page and ret == -1 and not self.isDumpRunning():
+                self.__request_after_page(True)
         else:
-            for dump in self.listdump:
-                if dump.isRunning():
-                    return
+            # exit
+            if self.isDumpRunning():
+                return
 
             self.__enabledComboBox(True)
             self.__enabledPageButton()
             self.__enabledButton(True, stop=False)
 
+    def isDumpRunning(self):
+        for dump in self.listdump:
+            if dump.isRunning():
+                return True
+        return False
+
     def startDumpThread(self, dump):
         row = -1
         source = None
         while True:
-            row = self.model.getFreeRow(row+1)
+            row = self.model.getFreeRow(row + 1)
             if row == -1:
-                return False
+                return -1
 
             source = self.model.getSources(row)
             if source is not None:
                 break
 
         if source is None:
-            return -1
+            return -2
 
         item = self.model.getItem(row)
         if item is None:
-            return False
+            return -3
 
         total = 0
         current = 0
@@ -613,7 +664,7 @@ class MainWindow(QtGui.QWidget):
         else:
             self.db.insert_book({'bid': item['id'], 'name': item['name'],
                                  'author': item['author'], 'status': item['status']})
-        return True
+        return 0
 
     def __set_selected_site(self, bid, site):
         path = os.path.join(self.path_cache, 'settings', bid)
@@ -661,3 +712,9 @@ class MainWindow(QtGui.QWidget):
     def onTaskNumberCurrentIndexChanged(self, text):
         self.__init_dump(int(text))
         self.conf.task_number = int(text)
+
+    def onAutoSwitchPageToggled(self, checked):
+        self.conf.auto_switch_page = checked
+
+    def onAutoSwitchSourceToggled(self, checked):
+        self.conf.auto_switch_source = checked

@@ -6,7 +6,7 @@ import api
 import data
 from PyQt4 import QtGui, QtCore
 from ui_mainwindow import Ui_MainWindow
-from threads import SearchThread, SearchByThread, SearchCacheThread, SourcesThread, DumpThread
+from threads import SearchThread, SearchByThread, SearchCacheThread, SourcesThread, DumpThread, SyncThread
 from model import BookState, BookTableModel
 from delegate import BookItemDelegate
 from qin import utils
@@ -672,7 +672,20 @@ class MainWindow(QtGui.QWidget):
             cache = SettingsCache(path)
             cache.site = site
 
+    def onSignalSyncLog(self, msg):
+        self.ui.label_cache_msg.setText(msg)
+
+    def onSignalSyncFinished(self, code):
+        self.ui.pushButton_sync.setEnabled(True)
+
     def onSyncClicked(self):
+        '''
+        thread = SyncThread(self)
+        thread.signal_log.connect(self.onSignalSyncLog)
+        thread.signal_finished.connect(self.onSignalSyncFinished)
+        thread.start(self.uid, self.path_cache)
+        self.ui.pushButton_sync.setEnabled(False)
+        '''
         self.ui.pushButton_sync.setEnabled(False)
         total = 0
         listdir = os.listdir(self.path_dump)

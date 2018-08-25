@@ -5,9 +5,11 @@ import logging
 import api
 import time
 from PyQt4 import QtCore
-from cache import SourcesCache, ChaptersCache, SettingsCache
+from cache import SourcesCache, ChaptersCache, SettingsCache, BookCache
 from qin import utils
 from qin.cache import ConfCache
+import json
+import data
 
 
 def set_selected_site(path, bid, value):
@@ -116,7 +118,7 @@ class BaseThread(QtCore.QThread):
 
             (progress_total, progress_index) = get_progress_by_db(
                 self._db, row['id'], site)
-            #print progress_total, progress_index
+            # print progress_total, progress_index
             if progress_total == 0 and progress_index == 0:
                 (progress_total, progress_index) = get_progress_by_cache(
                     self._path_dump, row['name'], row['author'], site_name)
@@ -539,6 +541,121 @@ class DumpThread(QtCore.QThread):
 
     def __emit_signal_finished(self, code):
         self.signal_finished.emit(self.__index, code)
+
+
+class SyncThread(QtCore.QThread):
+
+    signal_log = QtCore.pyqtSignal(str)
+    signal_finished = QtCore.pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        super(SyncThread, self).__init__(parent)
+        self.__exit = False
+
+    def start(self, uid, path):
+        self.__uid = uid
+        self.__path = path
+        self.__exit = False
+        super(SyncThread, self).start()
+
+    def stop(self):
+        self.__exit = True
+        # self.wait()
+
+    def run(self):
+        self.__emit_signal_log('start')
+        code = 1
+        # self.__sync_tags(self.__path)
+
+        self.path_books = os.path.join(self.__path, 'books')
+        if not os.path.exists(self.path_books):
+            os.makedirs(self.path_books)
+
+        self.__request_books()
+        if self.__exit:
+            code = 2
+        self.__emit_signal_finished(code)
+
+    def __sync_tags(self, path):
+        listdir = os.listdir(path)
+        for dirname in listdir:
+            try:
+                self.__emit_signal_log(dirname.decode('gbk'))
+                filename = os.path.join(path, dirname, 'book.json')
+                if os.path.exists(filename):
+                    print filename
+                    cache = ConfCache(filename)
+                    print cache.bid
+                    try:
+                        print cache.tags
+                    except Exception, e:
+                        # print 'no tags'
+                        # cache.tags = self.__request_tags(cache.bid,
+                        # cache.name)
+                        print self.__request_tags(cache.bid, cache.name)
+            except Exception, e:
+                print str(e)
+
+    def __request_books(self):
+        for gender_item in data.book:
+            logging.error(gender_item['name'])
+            for major_item in gender_item['major']:
+                logging.error('\t\t\t\t' + major_item['name'])
+                self.__request_search(major_item['name'])
+
+    def __request_search(self, name):
+        index = 0
+        limit = 10
+        while True:
+            #self.__emit_signal_log('%s (%d/%d)' % (name, index * limit, limit))
+            #print name, index * limit, limit
+            json = api.request_Search(
+                self.__uid, name, '', '', '', index * limit, limit)
+            if json is not None:
+                if json['errno'] == 0:
+                    if len(json['data']) > 0:
+                        logging.error('\t\t\t\t' + '%d - %d' % (index, len(json['data'])))
+                        for item in json['data']:
+                            #print '   ', item['name'], item['id']
+                            logging.error('\t\t\t\t\t\t\t\t' + item['name'])
+                            self.__emit_signal_log(item['name'])
+                            path_cache = os.path.join(
+                                self.path_books, item['id'])
+                            if not os.path.exists(path_cache):
+                                cache = BookCache(path_cache)
+                                #print cache.read()
+                                cache.write(item)
+                        index += 1
+                        continue
+            break
+
+    def __request_tags(self, bid, name):
+        index = 0
+        limit = 10
+        while True:
+            print name, bid, index, limit
+            json2 = api.request_SearchByName(
+                self.__uid, name, index * limit, limit)
+            if json2 is not None:
+                logging.error(json.dumps(json2))
+                if json2['errno'] == 0:
+                    if len(json2['data']) > 0:
+                        for row in json2['data']:
+                            print row['id'], row['name'], row['author']
+                            if row['id'] == bid:
+                                return 'ok'
+                        index += 1
+                        continue
+            break
+        return 'no'
+
+    def __emit_signal_log(self, msg, *args):
+        if args:
+            msg = msg % args
+        self.signal_log.emit(msg)
+
+    def __emit_signal_finished(self, code):
+        self.signal_finished.emit(code)
 
 
 def main():

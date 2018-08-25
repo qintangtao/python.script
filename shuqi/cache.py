@@ -18,6 +18,13 @@ class ChaptersCache(AESCache):
             path, 'Abdkiahdjfieqtao', '9856335217384736')
 
 
+class BookCache(AESCache):
+
+    def __init__(self, path):
+        super(BookCache, self).__init__(
+            path, 'Abdkiahdjfieqhix', '9856335217631736')
+
+
 class SettingsCache(ConfAESCache):
 
     def __init__(self, path):

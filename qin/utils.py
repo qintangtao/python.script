@@ -109,7 +109,7 @@ def request_get(url, params=None, **kwargs):
 
 def request_post(url, data, **kwargs):
     try:
-        r = requests.get(url, data, **kwargs)
+        r = requests.post(url, data, **kwargs)
         if r.ok:
             logging.debug(r.content)
             return r.content

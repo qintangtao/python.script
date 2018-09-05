@@ -180,8 +180,16 @@ def request_file(filename, url):
     return save_file_wb(filename, content)
 
 
-def download_file(path, url, retry=False):
-    filename = os.path.join(path, os.path.basename(url))
+def download_file(path, url, **args):
+    basename = ''
+    if 'basename' in args:
+        basename = args['basename']
+    if basename is None or basename == '':
+        basename = os.path.basename(url)
+    retry = False
+    if 'retry' in args:
+        retry = args['retry']
+    filename = os.path.join(path, basename)
     if os.path.exists(filename):
         if retry:
             os.remove(filename)

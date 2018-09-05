@@ -28,7 +28,7 @@ def logging_config(path, level):
     path = os.path.join(path, 'log')
     if not os.path.exists(path):
         os.makedirs(path)
-    filename = os.path.join(path, 'dump_%d%02d%02d.log' %
+    filename = os.path.join(path, '%d%02d%02d.log' %
                             (t.tm_year, t.tm_mon, t.tm_mday))
     logging.basicConfig(level=level,
                         format='{%(funcName)s:%(lineno)d} <%(levelname)s> %(message)s',
@@ -227,10 +227,10 @@ def is_overdue(timestamp):
     return False
 
 
-def random_check():
+def random_check(a=1, b=100, c=2):
     random.seed()
-    r = random.randint(1, 100)
-    if r % 2 == 0:
+    r = random.randint(a, b)
+    if r % c == 0:
         return True
     return False
 

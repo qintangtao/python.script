@@ -87,7 +87,6 @@ class ConfAESCache(JsonCache):
         self.__dict__['__data__'] = {} if data is None else data
 
     def __del__(self):
-        print self.__dict__['__data__']
         self.write(self.__dict__['__data__'])
 
     def __setattr__(self, name, value):

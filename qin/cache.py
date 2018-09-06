@@ -71,6 +71,12 @@ class ConfCache(JsonCache):
             return self.__dict__['__data__'][name]
         return self.__dict__[name]
 
+    def getattr(self, name, default=None):
+        try:
+            return getattr(self, name)
+        except Exception:
+            return default
+
 
 class ConfAESCache(JsonCache):
 
@@ -81,6 +87,7 @@ class ConfAESCache(JsonCache):
         self.__dict__['__data__'] = {} if data is None else data
 
     def __del__(self):
+        print self.__dict__['__data__']
         self.write(self.__dict__['__data__'])
 
     def __setattr__(self, name, value):
@@ -99,6 +106,12 @@ class ConfAESCache(JsonCache):
 
     def _decode(self, text):
         return super(ConfAESCache, self)._decode(self._aes.decrypt(text))
+
+    def getattr(self, name, default=None):
+        try:
+            return getattr(self, name)
+        except Exception:
+            return default
 
 if __name__ == "__main__":
     c = ConfCache(os.path.join(os.getcwd(), 'ConfCache.json'))

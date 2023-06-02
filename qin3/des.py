@@ -2,43 +2,28 @@
 # -*- coding: UTF-8 -*-
 from Crypto.Cipher import DES3
 from Crypto import Random
-from binascii import b2a_hex, a2b_hex
-from utils import b
+import es
 import base64
-import urllib.parse
 
+PADDING_ZERO	=	0
+PADDING_PKCS7	=	1
+PADDING_ISO		=	2
 
-class des(object):
+class des(es.es):
 
-    def __init__(self, key, iv, mode=DES3.MODE_CBC):
+    def __init__(self, key, iv, mode=DES3.MODE_CBC, padding=PADDING_ISO):    	
         self.__key = key
         self.__iv = iv
         self.__mode = mode
+        super(des, self).__init__(DES3.block_size, padding)
 
-    def _pad(self, cryptor, plaintext):
-        padding_length = (cryptor.block_size - len(plaintext) % cryptor.block_size) % cryptor.block_size
-        if padding_length==0:
-            padding_length = cryptor.block_size
-        padded = plaintext + b(chr(padding_length))*padding_length
-        return padded
-
-    def _unpad(self, ciphertext):
-        return ciphertext[0:-ciphertext[-1]]
-
-    def _encode(self, ciphertext):
-        return b2a_hex(ciphertext)
-
-    def _decode(self, ciphertext):
-        return a2b_hex(ciphertext)
-
-    def encrypt(self, plaintext):
+    def _encrypt(self, plaintext):
         cryptor = DES3.new(self.__key, self.__mode, self.__iv)
-        return self._encode(cryptor.encrypt(self._pad(cryptor, plaintext)))
+        return cryptor.encrypt(plaintext)
 
-    def decrypt(self, ciphertext):
+    def _decrypt(self, plaintext):
         cryptor = DES3.new(self.__key, self.__mode, self.__iv)
-        return self._unpad(cryptor.decrypt(self._decode(ciphertext)))
-
+        return cryptor.decrypt(plaintext)
 
 class desReader(des):
 
@@ -55,9 +40,5 @@ if __name__ == "__main__":
     dr = desReader(key, iv, DES3.MODE_ECB)
     e = dr.encrypt('{"type":"玄幻","page":"2","gender":"male"}'.encode("utf-8"))
     print (e)
-    e = urllib.parse.quote(e)
-    print (e)
-    e = urllib.parse.unquote(e)
-    print (e)
     d = dr.decrypt(e).decode("utf-8")
-    print (e)
+    print (d)

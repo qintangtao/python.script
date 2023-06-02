@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+import sys
 import os
 import time
 import logging
@@ -11,6 +12,49 @@ import random
 import zlib
 import uuid
 import wmi
+
+if sys.version_info[0] == 2:
+    def b(s):
+        return s
+    def bchr(s):
+        return chr(s)
+    def bstr(s):
+        return str(s)
+    def bord(s):
+        return ord(s)
+    if sys.version_info[1] == 1:
+        def tobytes(s):
+            try:
+                return s.encode('latin-1')
+            except:
+                return ''.join(s)
+    else:
+        def tobytes(s):
+            if isinstance(s, str):
+                return s.encode("latin-1")
+            else:
+                return ''.join(s)
+else:
+    def b(s):
+       return s.encode("latin-1") # utf-8 would cause some side-effects we don't want
+    def bchr(s):
+        return bytes([s])
+    def bstr(s):
+        if isinstance(s,str):
+            return bytes(s,"latin-1")
+        else:
+            return bytes(s)
+    def bord(s):
+        return s
+    def tobytes(s):
+        if isinstance(s,bytes):
+            return s
+        else:
+            if isinstance(s,str):
+                return s.encode("latin-1")
+            else:
+                return bytes(s)
+
 '''
 logging.CRITICAL
 logging.FATAL
@@ -21,8 +65,6 @@ logging.INFO
 logging.DEBUG
 logging.NOTSET
 '''
-
-
 def logging_config(path, level):
     t = time.localtime(time.time())
     path = os.path.join(path, 'log')
@@ -219,6 +261,7 @@ def request_nowtime():
     try:
         r = requests.get('http://www.beijing-time.org/')
         if r.ok:
+            logging.debug(r.headers)
             tm = gmt_timestamp(r.headers['Date'])
             return millis_timestamp(tm)
         else:

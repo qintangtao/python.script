@@ -21,9 +21,9 @@ class aes(es.es):
         cryptor=AES.new(self.__key, self.__mode, self.__iv)
         return cryptor.encrypt(plaintext)
 
-    def _decrypt(self, plaintext):
+    def _decrypt(self, ciphertext):
         cryptor=AES.new(self.__key, self.__mode, self.__iv)
-        return cryptor.decrypt(plaintext)
+        return cryptor.decrypt(ciphertext)
 
 class aesReader(aes):
 

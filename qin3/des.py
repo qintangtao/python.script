@@ -21,9 +21,9 @@ class des(es.es):
         cryptor = DES3.new(self.__key, self.__mode, self.__iv)
         return cryptor.encrypt(plaintext)
 
-    def _decrypt(self, plaintext):
+    def _decrypt(self, ciphertext):
         cryptor = DES3.new(self.__key, self.__mode, self.__iv)
-        return cryptor.decrypt(plaintext)
+        return cryptor.decrypt(ciphertext)
 
 class desReader(des):
 

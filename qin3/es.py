@@ -37,9 +37,10 @@ class es(object):
     def _pad(self, plaintext):
         if self.__padding == PADDING_ISO:
         	return self._pad_ISO(plaintext)
-        if self.__padding == PADDING_PKCS7:
+        elif self.__padding == PADDING_PKCS7:
         	return self._pad_PKCS7(plaintext)
-        return self._pad_ZERO(plaintext)
+        else:
+            return self._pad_ZERO(plaintext)
 
     def _unpad_ZERO(self, ciphertext):
     	length=len(ciphertext)
@@ -65,9 +66,10 @@ class es(object):
     def _unpad(self, ciphertext):
     	if self.__padding == PADDING_ISO:
     		return self._unpad_ISO(ciphertext)
-    	if self.__padding == PADDING_PKCS7:
+    	elif self.__padding == PADDING_PKCS7:
     		return self._unpad_PKCS7(ciphertext)
-    	return self._unpad_ZERO(ciphertext)
+    	else:
+            return self._unpad_ZERO(ciphertext)
 
     def _encode(self, ciphertext):
         return b2a_hex(ciphertext)
@@ -76,10 +78,10 @@ class es(object):
         return a2b_hex(ciphertext)
 
     def _encrypt(self, plaintext):
-        pass
+        raise NotImplementedError('_encrypt: not implemented!')
 
     def _decrypt(self, ciphertext):
-        pass
+        raise NotImplementedError('_decrypt: not implemented!')
 
     def encrypt(self, plaintext):
         return self._encode(self._encrypt(self._pad(plaintext)))

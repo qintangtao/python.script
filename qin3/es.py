@@ -10,34 +10,34 @@ PADDING_ISO		=	2
 class es(object):
 
     def __init__(self, block_size, padding):
-        self.__block_size = block_size
-        self.__padding = padding
+        self._block_size = block_size
+        self._padding = padding
 
     def _pad_ZERO(self, plaintext):
-        padding_length = (self.__block_size - len(plaintext) % self.__block_size) % self.__block_size
+        padding_length = (self._block_size - len(plaintext) % self._block_size) % self._block_size
         if padding_length==0:
             return plaintext
         padded = plaintext + bytes(padding_length)
         return padded
 
     def _pad_PKCS7(self, plaintext):
-        padding_length = (self.__block_size - len(plaintext) % self.__block_size) % self.__block_size
+        padding_length = (self._block_size - len(plaintext) % self._block_size) % self._block_size
         if padding_length==0:
-            padding_length = self.__block_size
+            padding_length = self._block_size
         padded = plaintext + b(chr(padding_length))*padding_length
         return padded
 
     def _pad_ISO(self, plaintext):
-        padding_length = (self.__block_size - len(plaintext) % self.__block_size) % self.__block_size
+        padding_length = (self._block_size - len(plaintext) % self._block_size) % self._block_size
         if padding_length==0:
             return plaintext
         padded = plaintext + b('\x80') + bytes(padding_length-1)
         return padded
 
     def _pad(self, plaintext):
-        if self.__padding == PADDING_ISO:
+        if self._padding == PADDING_ISO:
         	return self._pad_ISO(plaintext)
-        elif self.__padding == PADDING_PKCS7:
+        elif self._padding == PADDING_PKCS7:
         	return self._pad_PKCS7(plaintext)
         else:
             return self._pad_ZERO(plaintext)
@@ -64,9 +64,9 @@ class es(object):
     	return ciphertext
 
     def _unpad(self, ciphertext):
-    	if self.__padding == PADDING_ISO:
+    	if self._padding == PADDING_ISO:
     		return self._unpad_ISO(ciphertext)
-    	elif self.__padding == PADDING_PKCS7:
+    	elif self._padding == PADDING_PKCS7:
     		return self._unpad_PKCS7(ciphertext)
     	else:
             return self._unpad_ZERO(ciphertext)

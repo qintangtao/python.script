@@ -37,7 +37,7 @@ class aesReader(aes):
 if __name__ == "__main__":
     key = b'Jsdfiahdjfieqtao'
     iv = Random.new().read(AES.block_size)
-    ar = aesReader(key, iv, padding=PADDING_ISO)
+    ar = aesReader(key, iv)
     e = ar.encrypt('{"type":"玄幻","page":"2","gender":"male"}'.encode("utf-8"))
     print (e)
     d = ar.decrypt(e).decode("utf-8")

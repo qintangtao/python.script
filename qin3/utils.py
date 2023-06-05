@@ -285,6 +285,64 @@ def random_check(a=1, b=100, c=2):
         return True
     return False
 
+class switch(object):
+
+    def __init__(self, value):
+        self.value = value
+        self.fall = False
+
+    def __iter__(self):
+        """Return the match method once, then stop"""
+        yield self.match
+        raise StopIteration
+
+    def match(self, *args):
+        """Indicate whether or not to enter a case suite"""
+        if self.fall or not args:
+            return True
+        elif self.value in args:  # changed for v1.5, see below
+            self.fall = True
+            return True
+        else:
+            return False
+
+
+def test_switch():
+    v = 'ten'
+    for case in switch(v):
+        if case('one'):
+            print (1)
+            break
+        if case('two'):
+            print (2)
+            break
+        if case('ten'):
+            print (10)
+            break
+        if case('eleven'):
+            print (11)
+            break
+        if case():
+            print ("something else!" )  
+
+def test_switch2():
+    v = 10
+    for case in switch(v):
+        if case(1):
+            print (1)
+            break
+        if case(2):
+            print (2)
+            break
+        if case(10):
+            print (10)
+            break
+        if case(11):
+            print (11)
+            break
+        if case():
+            print ("something else!" )               
+
 if __name__ == "__main__":
     hardware_str = ""
     c = wmi.WMI()
@@ -320,6 +378,9 @@ if __name__ == "__main__":
         if disk.DriveType == 3:
             space = 100 * int(disk.FreeSpace) / int(disk.Size)
             print ("%s has %d%% free" % (disk.Name, space))
+
+    test_switch2()
+    
     '''
     print random_check()
     if is_overdue(123):
